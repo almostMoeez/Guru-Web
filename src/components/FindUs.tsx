@@ -1,0 +1,268 @@
+import { useState, FormEvent } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { MapPin, Phone, Clock, Calendar, CheckCircle2 } from 'lucide-react';
+import { Reservation } from '../types';
+
+export default function FindUs() {
+  const [formData, setFormData] = useState<Reservation>({
+    name: '',
+    email: '',
+    phone: '',
+    date: '',
+    time: '',
+    guests: 2,
+    specialRequests: ''
+  });
+
+  const [bookingSuccess, setBookingSuccess] = useState<boolean>(false);
+  const [userBookings, setUserBookings] = useState<Reservation[]>([]);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.phone || !formData.date || !formData.time) {
+      return;
+    }
+    
+    // Save to simulated bookings store
+    const updatedBookings = [...userBookings, formData];
+    setUserBookings(updatedBookings);
+    setBookingSuccess(true);
+    
+    // Clear form except name for personalized response
+    setTimeout(() => {
+      setBookingSuccess(false);
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        date: '',
+        time: '',
+        guests: 2,
+        specialRequests: ''
+      });
+    }, 4500);
+  };
+
+  return (
+    <section id="find-us-section" className="py-24 bg-[#0b0b0b] relative border-t border-white/5">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-peach/3 rounded-full blur-[150px] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div id="section-header" className="text-center max-w-2xl mx-auto mb-16">
+          <span className="text-primary-peach text-xs font-semibold tracking-[0.25em] uppercase block mb-3">
+            RESERVE & LOCATE
+          </span>
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-4">
+            Visit Guru Lounge
+          </h2>
+          <div className="h-[2px] w-12 bg-primary-peach mx-auto my-6" />
+          <p className="text-zinc-400 text-sm leading-relaxed font-light">
+            Indulge in a premium physical ambiance built from high-contrast brutalist granite and lush warm organic greens in Lahore.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Card left: Info & map placeholder */}
+          <div className="lg:col-span-5 space-y-8 flex flex-col justify-between">
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold text-white mb-4">Lahore Lounge</h3>
+              
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-zinc-900 border border-white/5 rounded-2xl text-primary-peach shrink-0 mt-1">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-white text-sm font-semibold mb-1">Our Location Address</h4>
+                  <p className="text-zinc-400 text-xs font-light leading-relaxed">
+                    Main Boulevard Gulberg III (beside Mall 1), Lahore, Pakistan
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-zinc-900 border border-white/5 rounded-2xl text-primary-peach shrink-0 mt-1">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-white text-sm font-semibold mb-1">Ambiance Hours</h4>
+                  <p className="text-zinc-400 text-xs font-light leading-relaxed">
+                    Monday — Sunday: 08:00 AM — 01:00 AM
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-zinc-900 border border-white/5 rounded-2xl text-primary-peach shrink-0 mt-1">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-white text-sm font-semibold mb-1">Direct Line Contact</h4>
+                  <p className="text-zinc-400 text-xs font-light leading-relaxed">
+                    +92 (42) 3571-GURU (4878)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Custom Premium Virtual Map */}
+            <div className="h-64 rounded-3xl overflow-hidden relative border border-white/5 bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
+              {/* Grid abstract background */}
+              <div className="absolute inset-0 bg-[radial-gradient(#2a2a2a_1px,transparent_1px)] [background-size:16px_16px] opacity-30" />
+              <div className="absolute top-1/4 right-1/3 w-24 h-24 bg-primary-peach/15 rounded-full blur-xl animate-pulse" />
+              
+              <div className="relative z-10 space-y-3">
+                <div className="w-12 h-12 rounded-full bg-primary-peach/10 flex items-center justify-center text-primary-peach mx-auto mb-2 border border-primary-peach/20">
+                  <MapPin className="w-6 h-6" />
+                </div>
+                <h4 className="text-white text-sm font-bold tracking-wider">Gulberg Lounge Compass</h4>
+                <p className="text-[11px] text-zinc-500 font-mono">31.5204° N, 74.3487° E</p>
+                <span className="inline-block py-1 px-3 bg-zinc-900 rounded-full text-[10px] text-primary-peach border border-primary-peach/30 font-semibold uppercase tracking-widest mt-2">
+                  Valet Service Available
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card right: Form */}
+          <div className="lg:col-span-7 bg-[#0d0d0d] border border-white/5 rounded-3xl p-8 relative overflow-hidden">
+            <AnimatePresence mode="wait">
+              {bookingSuccess ? (
+                <motion.div
+                  key="success"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="flex flex-col items-center justify-center h-full text-center py-12"
+                >
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-6">
+                    <CheckCircle2 className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">Reservation Secured</h3>
+                  <p className="text-zinc-400 text-xs font-light max-w-sm mb-6 leading-relaxed">
+                    Salutations, <span className="text-primary-peach font-semibold">{formData.name}</span>. Your table of <span className="text-white font-semibold">{formData.guests} guests</span> on <span className="text-white font-semibold">{formData.date}</span> at <span className="text-white font-semibold">{formData.time}</span> has been locked in at GURU. A master sommelier waits!
+                  </p>
+                  <p className="text-zinc-500 font-mono text-[9px] uppercase tracking-[0.2em]">
+                    A verification voucher was sent to {formData.email}
+                  </p>
+                </motion.div>
+              ) : (
+                <motion.form
+                  key="form"
+                  onSubmit={handleSubmit}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-6"
+                >
+                  <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-primary-peach shrink-0" />
+                    Bespoke Table Booking
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Your Name</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="John Doe"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full bg-zinc-950 border border-white/10 hover:border-white/20 focus:border-primary-peach rounded-2xl px-4 py-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary-peach transition-all"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Email Mailbox</label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="johndoe@gmail.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="w-full bg-zinc-950 border border-white/10 hover:border-white/20 focus:border-primary-peach rounded-2xl px-4 py-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary-peach transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Active Contact Phone</label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="+92 300 1234567"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        className="w-full bg-zinc-950 border border-white/10 hover:border-white/20 focus:border-primary-peach rounded-2xl px-4 py-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary-peach transition-all"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Calender Date</label>
+                      <input
+                        type="date"
+                        required
+                        value={formData.date}
+                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                        className="w-full bg-zinc-950 border border-white/10 hover:border-white/20 focus:border-primary-peach rounded-2xl px-4 py-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary-peach transition-all [color-scheme:dark]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Time Frame</label>
+                      <input
+                        type="time"
+                        required
+                        value={formData.time}
+                        onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                        className="w-full bg-zinc-950 border border-[#2a2a2a] hover:border-white/20 focus:border-primary-peach rounded-2xl px-4 py-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary-peach transition-all [color-scheme:dark]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Co-guests Count</label>
+                      <select
+                        value={formData.guests}
+                        onChange={(e) => setFormData({ ...formData, guests: parseInt(e.target.value) })}
+                        className="w-full bg-zinc-950 border border-[#2a2a2a] hover:border-white/20 focus:border-primary-peach rounded-2xl px-4 py-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary-peach transition-all cursor-pointer"
+                      >
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                          <option key={num} value={num}>
+                            {num} {num === 1 ? 'Guest' : 'Guests'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Special Accommodations</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Birthday anniversary, wheelchair access"
+                        value={formData.specialRequests}
+                        onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
+                        className="w-full bg-zinc-950 border border-[#2a2a2a] hover:border-white/20 focus:border-primary-peach rounded-2xl px-4 py-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary-peach transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <button
+                      type="submit"
+                      className="w-full py-4.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-extrabold text-sm tracking-widest rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-primary-peach/10 cursor-pointer uppercase"
+                    >
+                      SECURE BRUTALIST RESERVATION
+                    </button>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

@@ -1,0 +1,184 @@
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { X, Check } from 'lucide-react';
+import { MenuItem, SelectedConfig } from '../types';
+
+interface CustomizationOverlayProps {
+  isOpen: boolean;
+  onClose: () => void;
+  menuItem: MenuItem | null;
+  onConfirm: (item: MenuItem, selectedConfig: SelectedConfig) => void;
+}
+
+export default function CustomizationOverlay({
+  isOpen,
+  onClose,
+  menuItem,
+  onConfirm,
+}: CustomizationOverlayProps) {
+  const [selectedConfig, setSelectedConfig] = useState<SelectedConfig>({});
+
+  // Initialize selected values with default values (first available choices)
+  useEffect(() => {
+    if (menuItem && menuItem.customizationOptions) {
+      const initialConfig: SelectedConfig = {};
+      menuItem.customizationOptions.forEach((option) => {
+        if (option.choices && option.choices.length > 0) {
+          initialConfig[option.name] = {
+            name: option.choices[0].name,
+            extraPrice: option.choices[0].extraPrice || 0,
+          };
+        }
+      });
+      setSelectedConfig(initialConfig);
+    }
+  }, [menuItem]);
+
+  if (!menuItem || !menuItem.customizationOptions) return null;
+
+  const handleChoiceSelect = (optionName: string, choiceName: string, extraPrice?: number) => {
+    setSelectedConfig((prev) => ({
+      ...prev,
+      [optionName]: {
+        name: choiceName,
+        extraPrice: extraPrice || 0,
+      },
+    }));
+  };
+
+  // Calculate dynamic price based on selections
+  const extraPriceTotal = Object.values(selectedConfig).reduce<number>(
+    (acc, val) => acc + ((val as { extraPrice?: number }).extraPrice || 0),
+    0
+  );
+  const finalPrice = menuItem.price + extraPriceTotal;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop blur overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+          />
+
+          {/* Modal Container */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+            className="relative w-full max-w-lg bg-[#0e0e0e] border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] z-15 text-zinc-100 font-sans"
+          >
+            {/* Header with image */}
+            <div className="relative h-48 w-full shrink-0">
+              <img
+                src={menuItem.image}
+                alt={menuItem.name}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-black/40 to-black/20" />
+              
+              {/* Close Button */}
+              <button
+                onClick={onClose}
+                className="absolute top-5 right-5 p-2 rounded-full bg-black/60 hover:bg-black/80 text-zinc-300 hover:text-white transition-colors cursor-pointer border border-white/5"
+                aria-label="Close customization"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Product Heading Info */}
+              <div className="absolute bottom-4 left-6 right-6">
+                <span className="text-primary-peach text-[9px] uppercase font-mono tracking-widest block mb-1">
+                  CUSTOM DESIGN
+                </span>
+                <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight leading-tight">
+                  {menuItem.name}
+                </h3>
+              </div>
+            </div>
+
+            {/* Scrollable Customization Fields */}
+            <div className="p-6 md:p-8 overflow-y-auto space-y-6 flex-1">
+              <p className="text-zinc-400 text-xs md:text-sm font-light leading-relaxed mb-4">
+                {menuItem.description}
+              </p>
+
+              {menuItem.customizationOptions.map((option) => {
+                const selectedChoice = selectedConfig[option.name]?.name;
+
+                return (
+                  <div key={option.name} className="space-y-3 pb-5 border-b border-white/5 last:border-b-0 last:pb-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-300">
+                        {option.name} {option.required && <span className="text-primary-peach">*</span>}
+                      </h4>
+                      {selectedChoice && (
+                        <span className="text-[10px] font-semibold text-primary-peach/80 uppercase tracking-wider bg-primary-peach/5 border border-primary-peach/10 px-2 py-0.5 rounded">
+                          Selected: {selectedChoice}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Choices Options Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {option.choices.map((choice) => {
+                        const isSelected = selectedChoice === choice.name;
+                        return (
+                          <button
+                            key={choice.name}
+                            onClick={() => handleChoiceSelect(option.name, choice.name, choice.extraPrice)}
+                            className={`px-4 py-3 rounded-full flex items-center justify-between text-left text-xs transition-all duration-250 cursor-pointer border ${
+                              isSelected
+                                ? 'bg-primary-peach border-primary-peach text-black font-semibold'
+                                : 'bg-zinc-950 border-white/5 hover:border-white/15 text-zinc-400 hover:text-white'
+                            }`}
+                          >
+                            <span className="truncate">{choice.name}</span>
+                            <span className="shrink-0 font-mono text-[10px] ml-2">
+                              {choice.extraPrice && choice.extraPrice > 0
+                                ? `+$${choice.extraPrice.toFixed(2)}`
+                                : 'Standard'}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Price & Add To Order Sticky Footer */}
+            <div className="p-6 md:p-8 border-t border-white/5 bg-[#090909] flex items-center justify-between gap-6 shrink-0 z-10">
+              <div className="space-y-0.5">
+                <span className="text-zinc-500 text-[10px] font-mono tracking-wider uppercase block">
+                  Total Price
+                </span>
+                <span className="text-xl md:text-2xl font-bold text-white font-mono leading-none">
+                  ${finalPrice.toFixed(2)}
+                </span>
+              </div>
+
+              <button
+                onClick={() => {
+                  onConfirm(menuItem, selectedConfig);
+                }}
+                className="px-6 py-3.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-bold text-xs tracking-wider rounded-full flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer uppercase shadow-lg shadow-primary-peach/5"
+              >
+                <Check className="w-4 h-4 shrink-0" />
+                Add Customized Selection
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
