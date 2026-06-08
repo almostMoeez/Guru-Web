@@ -44,7 +44,7 @@ export default function FindUs() {
   };
 
   return (
-    <section id="find-us-section" className="py-24 bg-[#0b0b0b] relative border-t border-white/5">
+    <section id="find-us-section" className="py-24 bg-[#1c1c1c] relative border-t border-white/5">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-peach/3 rounded-full blur-[150px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -124,7 +124,7 @@ export default function FindUs() {
           </div>
 
           {/* Card right: Form */}
-          <div className="lg:col-span-7 bg-[#0d0d0d] border border-white/5 rounded-3xl p-8 relative overflow-hidden">
+          <div className="lg:col-span-7 bg-[#242424] border border-white/5 rounded-3xl p-8 relative overflow-hidden">
             <AnimatePresence mode="wait">
               {bookingSuccess ? (
                 <motion.div

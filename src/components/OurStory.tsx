@@ -3,7 +3,7 @@ import { Droplet, Thermometer } from 'lucide-react';
 
 export default function OurStory() {
   return (
-    <div className="bg-[#0b0b0b] min-h-screen text-zinc-100 font-sans selection:bg-primary-peach selection:text-black">
+    <div className="bg-[#1c1c1c] min-h-screen text-zinc-100 font-sans selection:bg-primary-peach selection:text-black">
       
       {/* 1. HERO BANNER: BREWED TO PERFECTION */}
       <section className="relative h-[65vh] flex items-center justify-center overflow-hidden">
@@ -16,7 +16,7 @@ export default function OurStory() {
             className="w-full h-full object-cover opacity-60 scale-105"
           />
           {/* Symmetrical dark vignettes */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0b0b0b] via-transparent to-[#0b0b0b] opacity-90" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1c1c1c] via-transparent to-[#1c1c1c] opacity-90" />
           <div className="absolute inset-0 bg-black/40" />
         </div>
 
@@ -107,7 +107,7 @@ export default function OurStory() {
       </section>
 
       {/* 3. BENTO PHILOSOPHY GRID: THE ART OF BREWING */}
-      <section className="py-24 bg-[#090909] border-t border-white/5 relative z-10">
+      <section className="py-24 bg-[#141414] border-t border-white/5 relative z-10">
         <div className="max-w-7xl mx-auto px-6 space-y-14">
           
           {/* Header centered */}
@@ -124,7 +124,7 @@ export default function OurStory() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             
             {/* CARD 1: PRECISION WATER */}
-            <div className="md:col-span-4 bg-[#0d0d0d] border border-white/5 rounded-2xl p-8 hover:border-primary-peach/15 transition-all duration-300 flex flex-col justify-between">
+            <div className="md:col-span-4 bg-[#242424] border border-white/5 rounded-2xl p-8 hover:border-primary-peach/15 transition-all duration-300 flex flex-col justify-between">
               <div className="flex flex-col gap-6">
                 <div className="w-10 h-10 rounded-full bg-zinc-950 border border-white/5 flex items-center justify-center text-primary-peach">
                   <Droplet className="w-5 h-5 shrink-0" />
@@ -146,7 +146,7 @@ export default function OurStory() {
                 referrerPolicy="no-referrer"
                 className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#090909] via-black/40 to-black/10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-black/40 to-black/10" />
               
               <div className="absolute bottom-0 inset-x-0 p-8 space-y-1 z-10">
                 <h4 className="text-xl font-bold text-white tracking-tight">Meticulous Extraction</h4>
@@ -164,7 +164,7 @@ export default function OurStory() {
                 referrerPolicy="no-referrer"
                 className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#090909] via-black/40 to-black/10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-black/40 to-black/10" />
 
               <div className="absolute bottom-0 inset-x-0 p-8 space-y-1 z-10">
                 <h4 className="text-xl font-bold text-white tracking-tight">Pressure Profiling</h4>
@@ -175,7 +175,7 @@ export default function OurStory() {
             </div>
 
             {/* CARD 4: THERMAL STABILITY */}
-            <div className="md:col-span-4 bg-[#0d0d0d] border border-white/5 rounded-2xl p-8 hover:border-primary-peach/15 transition-all duration-300 flex flex-col justify-between">
+            <div className="md:col-span-4 bg-[#242424] border border-white/5 rounded-2xl p-8 hover:border-primary-peach/15 transition-all duration-300 flex flex-col justify-between">
               <div className="flex flex-col gap-6">
                 <div className="w-10 h-10 rounded-full bg-zinc-950 border border-white/5 flex items-center justify-center text-primary-peach">
                   <Thermometer className="w-5 h-5 shrink-0" />

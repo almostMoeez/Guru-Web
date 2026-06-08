@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ShoppingCart, Menu as MenuIcon, X } from 'lucide-react';
+import logoImg from '../assets/images/logo.png';
 
 interface HeaderProps {
   onCartClick: () => void;
@@ -38,10 +39,10 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
   return (
     <header
       id="app-header"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
         isScrolled
-          ? 'bg-[#0b0b0b]/90 backdrop-blur-md border-b border-white/5 py-3 shadow-lg'
-          : 'bg-transparent py-6'
+          ? 'bg-[#1c1c1c]/90 backdrop-blur-md border-white/5 py-3 shadow-lg'
+          : 'bg-transparent border-transparent py-6'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -49,12 +50,9 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
         <div 
           id="header-logo"
           onClick={() => handleLinkClick('home')}
-          className="flex items-center gap-2 cursor-pointer group"
+          className="flex items-center cursor-pointer"
         >
-          <span className="text-3xl font-extrabold tracking-tight text-white select-none transition-colors duration-300 group-hover:text-primary-peach">
-            guru
-          </span>
-          <span className="h-1.5 w-1.5 rounded-full bg-primary-peach inline-block mt-3"></span>
+          <img src={logoImg} alt="Guru Logo" className="h-8 w-auto object-contain" />
         </div>
 
         {/* Desktop Navigation */}
@@ -85,7 +83,7 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
           >
             <ShoppingCart className="w-5 h-5" />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary-peach text-black font-extrabold text-[10px] w-5.5 h-5.5 flex items-center justify-center rounded-full border-2 border-[#0b0b0b]">
+              <span className="absolute -top-1 -right-1 bg-primary-peach text-black font-extrabold text-[10px] w-5.5 h-5.5 flex items-center justify-center rounded-full border-2 border-[#1c1c1c]">
                 {cartCount}
               </span>
             )}
@@ -112,7 +110,7 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div id="mobile-menu" className="md:hidden fixed inset-0 top-[60px] bg-[#0b0b0b] z-40 border-t border-white/5 flex flex-col px-8 py-12 gap-8">
+        <div id="mobile-menu" className="md:hidden fixed inset-0 top-[60px] bg-[#1c1c1c] z-40 border-t border-white/5 flex flex-col px-8 py-12 gap-8">
           {menuItems.map((item) => (
             <button
               key={item.id}

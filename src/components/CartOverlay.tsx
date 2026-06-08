@@ -140,7 +140,7 @@ export default function CartOverlay({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="w-screen max-w-md bg-[#0d0d0d] border-l border-white/5 flex flex-col justify-between h-full shadow-2xl relative"
+              className="w-screen max-w-md bg-[#1c1c1c] border-l border-white/5 flex flex-col justify-between h-full shadow-2xl relative"
             >
               {/* Header */}
               <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between shrink-0">
@@ -529,7 +529,7 @@ export default function CartOverlay({
 
               {/* Checkout summaries (Sticky Footer) */}
               {cartItems.length > 0 && checkoutStep === 0 && (
-                <div className="px-6 py-6 border-t border-white/5 bg-[#0a0a0a] space-y-4 shrink-0">
+                <div className="px-6 py-6 border-t border-white/5 bg-[#141414] space-y-4 shrink-0">
                   <div className="space-y-2 text-sm font-medium">
                     <div className="flex justify-between text-zinc-400">
                       <span>Subtotal</span>

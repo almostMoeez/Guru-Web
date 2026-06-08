@@ -7,6 +7,7 @@ import FindUs from './components/FindUs';
 import CartOverlay from './components/CartOverlay';
 import CustomizationOverlay from './components/CustomizationOverlay';
 import { MenuItem, CartItem, SelectedConfig } from './types';
+import logoImg from './assets/images/logo.png';
 
 // Stable custom cartId generator for personalized options identification
 const generateCartId = (itemId: string, config?: SelectedConfig) => {
@@ -124,7 +125,7 @@ export default function App() {
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <div id="guru-app" className="relative bg-[#0b0b0b] min-h-screen text-zinc-100 selection:bg-primary-peach selection:text-black flex flex-col justify-between">
+    <div id="guru-app" className="relative bg-[#1c1c1c] min-h-screen text-zinc-100 selection:bg-primary-peach selection:text-black flex flex-col justify-between">
       <div>
         {/* Sticky Top Header Navigation */}
         <Header
@@ -182,17 +183,14 @@ export default function App() {
       />
 
       {/* Footer conforming to mock layout */}
-      <footer id="app-footer" className="bg-[#090909] py-12 border-t border-white/5 relative z-10 px-6">
+      <footer id="app-footer" className="bg-[#141414] py-12 border-t border-white/5 relative z-10 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
           <div 
             onClick={() => handleNavigate('home')}
-            className="flex items-center gap-1 cursor-pointer group"
+            className="flex items-center cursor-pointer"
           >
-            <span className="text-3xl font-extrabold tracking-tight text-white select-none transition-colors group-hover:text-primary-peach">
-              guru
-            </span>
-            <span className="h-1.5 w-1.5 rounded-full bg-primary-peach inline-block mt-3" />
+            <img src={logoImg} alt="Guru Logo" className="h-8 w-auto object-contain grayscale opacity-70 hover:opacity-100 hover:grayscale-0 transition-all duration-300" />
           </div>
 
           {/* Center Copy */}

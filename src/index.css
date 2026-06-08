@@ -4,14 +4,14 @@
 @theme {
   --font-sans: "Outfit", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --color-primary-peach: #cd8f7d;
-  --color-primary-peach-dark: #b87b6a;
-  --color-primary-peach-light: #dfa594;
+  --color-primary-peach: #e67e22;
+  --color-primary-peach-dark: #c86d1c;
+  --color-primary-peach-light: #ea8c43;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #0b0b0b;
+  background-color: #1c1c1c;
   color: #f5f5f5;
   overflow-x: hidden;
 }

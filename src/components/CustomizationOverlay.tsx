@@ -72,7 +72,7 @@ export default function CustomizationOverlay({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-            className="relative w-full max-w-lg bg-[#0e0e0e] border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] z-15 text-zinc-100 font-sans"
+            className="relative w-full max-w-lg bg-[#242424] border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] z-15 text-zinc-100 font-sans"
           >
             {/* Header with image */}
             <div className="relative h-48 w-full shrink-0">
@@ -82,7 +82,7 @@ export default function CustomizationOverlay({
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-black/40 to-black/20" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#242424] via-black/40 to-black/20" />
               
               {/* Close Button */}
               <button
@@ -156,7 +156,7 @@ export default function CustomizationOverlay({
             </div>
 
             {/* Price & Add To Order Sticky Footer */}
-            <div className="p-6 md:p-8 border-t border-white/5 bg-[#090909] flex items-center justify-between gap-6 shrink-0 z-10">
+            <div className="p-6 md:p-8 border-t border-white/5 bg-[#141414] flex items-center justify-between gap-6 shrink-0 z-10">
               <div className="space-y-0.5">
                 <span className="text-zinc-500 text-[10px] font-mono tracking-wider uppercase block">
                   Total Price

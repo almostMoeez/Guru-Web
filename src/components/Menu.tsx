@@ -33,7 +33,7 @@ export default function Menu({
   const filteredItems = MENU_ITEMS.filter((item) => item.category === activeCategory);
 
   return (
-    <section id="menu-section" className="py-24 bg-[#0b0b0b] min-h-screen relative border-t border-white/5">
+    <section id="menu-section" className="py-24 bg-[#1c1c1c] min-h-screen relative border-t border-white/5">
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-peach/5 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -89,7 +89,7 @@ export default function Menu({
                   return (
                     <div
                       key={item.id}
-                      className="md:col-span-2 bg-[#0c0c0c] border border-white/5 hover:border-primary-peach/15 rounded-3xl flex flex-col justify-between transition-all duration-300 group hover:shadow-2xl relative overflow-hidden"
+                      className="md:col-span-2 bg-[#242424] border border-white/5 hover:border-primary-peach/15 rounded-3xl flex flex-col justify-between transition-all duration-300 group hover:shadow-2xl relative overflow-hidden"
                     >
                         <div>
                           {/* Featured Large Image: Edge to Edge (Top, Left, Right) */}
@@ -197,7 +197,7 @@ export default function Menu({
                   return (
                     <div
                       key={item.id}
-                      className="bg-[#0c0c0c] border border-white/5 hover:border-primary-peach/15 rounded-3xl flex flex-col justify-between transition-all duration-300 group hover:shadow-2xl relative overflow-hidden"
+                      className="bg-[#242424] border border-white/5 hover:border-primary-peach/15 rounded-3xl flex flex-col justify-between transition-all duration-300 group hover:shadow-2xl relative overflow-hidden"
                     >
                       <div>
                         {/* Standard Image: Edge to Edge (Top, Left, Right) */}

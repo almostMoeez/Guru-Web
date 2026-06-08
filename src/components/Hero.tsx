@@ -10,7 +10,7 @@ export default function Hero({ onExploreMenu, onFindUs }: HeroProps) {
   return (
     <section
       id="hero-section"
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#090909]"
+      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#141414]"
     >
       {/* Darkened Visual Image Background */}
       <div className="absolute inset-0 z-0">
@@ -21,7 +21,7 @@ export default function Hero({ onExploreMenu, onFindUs }: HeroProps) {
           className="w-full h-full object-cover object-center opacity-40 scale-105 pointer-events-none"
         />
         {/* Dynamic Multi-layered overlay for high-end luxury feel */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/60 to-black/80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1c1c1c] via-[#1c1c1c]/60 to-black/80" />
         <div className="absolute inset-0 bg-black/40" />
       </div>
 
