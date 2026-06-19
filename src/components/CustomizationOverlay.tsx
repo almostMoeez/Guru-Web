@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Check } from 'lucide-react';
 import { MenuItem, SelectedConfig } from '../types';
+import { formatPKR } from '../lib/currency';
 
 interface CustomizationOverlayProps {
   isOpen: boolean;
@@ -24,9 +25,11 @@ export default function CustomizationOverlay({
       const initialConfig: SelectedConfig = {};
       menuItem.customizationOptions.forEach((option) => {
         if (option.choices && option.choices.length > 0) {
+          const first = option.choices[0];
           initialConfig[option.name] = {
-            name: option.choices[0].name,
-            extraPrice: option.choices[0].extraPrice || 0,
+            name: first.name,
+            extraPrice: first.extraPrice || 0,
+            modifierItemId: first.modifierItemId,
           };
         }
       });
@@ -36,12 +39,18 @@ export default function CustomizationOverlay({
 
   if (!menuItem || !menuItem.customizationOptions) return null;
 
-  const handleChoiceSelect = (optionName: string, choiceName: string, extraPrice?: number) => {
+  const handleChoiceSelect = (
+    optionName: string,
+    choiceName: string,
+    extraPrice?: number,
+    modifierItemId?: string,
+  ) => {
     setSelectedConfig((prev) => ({
       ...prev,
       [optionName]: {
         name: choiceName,
         extraPrice: extraPrice || 0,
+        modifierItemId,
       },
     }));
   };
@@ -133,7 +142,7 @@ export default function CustomizationOverlay({
                         return (
                           <button
                             key={choice.name}
-                            onClick={() => handleChoiceSelect(option.name, choice.name, choice.extraPrice)}
+                            onClick={() => handleChoiceSelect(option.name, choice.name, choice.extraPrice, choice.modifierItemId)}
                             className={`px-4 py-3 rounded-full flex items-center justify-between text-left text-xs transition-all duration-250 cursor-pointer border ${
                               isSelected
                                 ? 'bg-primary-peach border-primary-peach text-black font-semibold'
@@ -143,7 +152,7 @@ export default function CustomizationOverlay({
                             <span className="truncate">{choice.name}</span>
                             <span className="shrink-0 font-mono text-[10px] ml-2">
                               {choice.extraPrice && choice.extraPrice > 0
-                                ? `+$${choice.extraPrice.toFixed(2)}`
+                                ? `+${formatPKR(choice.extraPrice)}`
                                 : 'Standard'}
                             </span>
                           </button>
@@ -162,7 +171,7 @@ export default function CustomizationOverlay({
                   Total Price
                 </span>
                 <span className="text-xl md:text-2xl font-bold text-white font-mono leading-none">
-                  ${finalPrice.toFixed(2)}
+                  {formatPKR(finalPrice)}
                 </span>
               </div>
 

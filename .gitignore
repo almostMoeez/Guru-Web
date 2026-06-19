@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Backend (tracked separately; reference only)
+guru-backend-main/
+Backend/
