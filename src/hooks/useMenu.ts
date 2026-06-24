@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchMenu } from '../lib/api/menu';
 import { ApiError } from '../lib/api/client';
-import { mapMenu, mapCategories } from '../lib/mappers';
-import type { MenuItem, MenuCategory } from '../types';
+import { mapMenu } from '../lib/mappers';
+import type { MenuCategoryGroup } from '../types';
 
 // How long to wait before showing the "still loading" hint.
 const SLOW_HINT_DELAY_MS = 4_000;
@@ -10,8 +10,7 @@ const SLOW_HINT_DELAY_MS = 4_000;
 const AUTO_RETRY_DELAY_MS = 8_000;
 
 interface UseMenuResult {
-  items: MenuItem[];
-  categories: MenuCategory[];
+  groups: MenuCategoryGroup[];
   loading: boolean;
   /** Non-null when loading, indicates the server may be warming up. */
   loadingHint: string | null;
@@ -21,8 +20,7 @@ interface UseMenuResult {
 
 /** Loads the menu from the backend, with one automatic retry on network failure. */
 export function useMenu(): UseMenuResult {
-  const [items, setItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [groups, setGroups] = useState<MenuCategoryGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingHint, setLoadingHint] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,9 +49,8 @@ export function useMenu(): UseMenuResult {
     }, SLOW_HINT_DELAY_MS);
 
     fetchMenu(controller.signal)
-      .then((groups) => {
-        setItems(mapMenu(groups));
-        setCategories(mapCategories(groups));
+      .then((apiGroups) => {
+        setGroups(mapMenu(apiGroups));
         setLoading(false);
         setLoadingHint(null);
       })
@@ -88,5 +85,5 @@ export function useMenu(): UseMenuResult {
     };
   }, [nonce]);
 
-  return { items, categories, loading, loadingHint, error, reload };
+  return { groups, loading, loadingHint, error, reload };
 }

@@ -50,14 +50,14 @@ export default function FindUs() {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div id="section-header" className="text-center max-w-2xl mx-auto mb-16">
           <span className="text-primary-peach text-xs font-semibold tracking-[0.25em] uppercase block mb-3">
-            RESERVE & LOCATE
+            VISIT US
           </span>
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-4">
-            Visit Guru Lounge
+            Reserve a Table
           </h2>
           <div className="h-[2px] w-12 bg-primary-peach mx-auto my-6" />
           <p className="text-zinc-400 text-sm leading-relaxed font-light">
-            Indulge in a premium physical ambiance built from high-contrast brutalist granite and lush warm organic greens in Lahore.
+            Book a table and join us in person — a warm, modern space made for great food and good company in Lahore.
           </p>
         </div>
 
@@ -65,14 +65,14 @@ export default function FindUs() {
           {/* Card left: Info & map placeholder */}
           <div className="lg:col-span-5 space-y-8 flex flex-col justify-between">
             <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-white mb-4">Lahore Lounge</h3>
+              <h3 className="text-2xl font-bold text-white mb-4">Lahore Branch</h3>
               
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-zinc-900 border border-white/5 rounded-2xl text-primary-peach shrink-0 mt-1">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-white text-sm font-semibold mb-1">Our Location Address</h4>
+                  <h4 className="text-white text-sm font-semibold mb-1">Address</h4>
                   <p className="text-zinc-400 text-xs font-light leading-relaxed">
                     Main Boulevard Gulberg III (beside Mall 1), Lahore, Pakistan
                   </p>
@@ -84,7 +84,7 @@ export default function FindUs() {
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-white text-sm font-semibold mb-1">Ambiance Hours</h4>
+                  <h4 className="text-white text-sm font-semibold mb-1">Opening Hours</h4>
                   <p className="text-zinc-400 text-xs font-light leading-relaxed">
                     Monday — Sunday: 08:00 AM — 01:00 AM
                   </p>
@@ -96,7 +96,7 @@ export default function FindUs() {
                   <Phone className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-white text-sm font-semibold mb-1">Direct Line Contact</h4>
+                  <h4 className="text-white text-sm font-semibold mb-1">Phone</h4>
                   <p className="text-zinc-400 text-xs font-light leading-relaxed">
                     +92 (42) 3571-GURU (4878)
                   </p>
@@ -114,10 +114,10 @@ export default function FindUs() {
                 <div className="w-12 h-12 rounded-full bg-primary-peach/10 flex items-center justify-center text-primary-peach mx-auto mb-2 border border-primary-peach/20">
                   <MapPin className="w-6 h-6" />
                 </div>
-                <h4 className="text-white text-sm font-bold tracking-wider">Gulberg Lounge Compass</h4>
+                <h4 className="text-white text-sm font-bold tracking-wider">Find Us on the Map</h4>
                 <p className="text-[11px] text-zinc-500 font-mono">31.5204° N, 74.3487° E</p>
                 <span className="inline-block py-1 px-3 bg-zinc-900 rounded-full text-[10px] text-primary-peach border border-primary-peach/30 font-semibold uppercase tracking-widest mt-2">
-                  Valet Service Available
+                  Parking Available
                 </span>
               </div>
             </div>
@@ -137,12 +137,12 @@ export default function FindUs() {
                   <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-6">
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">Reservation Secured</h3>
+                  <h3 className="text-2xl font-bold text-white mb-2">Reservation Confirmed</h3>
                   <p className="text-zinc-400 text-xs font-light max-w-sm mb-6 leading-relaxed">
-                    Salutations, <span className="text-primary-peach font-semibold">{formData.name}</span>. Your table of <span className="text-white font-semibold">{formData.guests} guests</span> on <span className="text-white font-semibold">{formData.date}</span> at <span className="text-white font-semibold">{formData.time}</span> has been locked in at GURU. A master sommelier waits!
+                    Thanks, <span className="text-primary-peach font-semibold">{formData.name}</span>. Your table for <span className="text-white font-semibold">{formData.guests} guests</span> on <span className="text-white font-semibold">{formData.date}</span> at <span className="text-white font-semibold">{formData.time}</span> is booked. We look forward to seeing you!
                   </p>
                   <p className="text-zinc-500 font-mono text-[9px] uppercase tracking-[0.2em]">
-                    A verification voucher was sent to {formData.email}
+                    A confirmation was sent to {formData.email}
                   </p>
                 </motion.div>
               ) : (
@@ -156,7 +156,7 @@ export default function FindUs() {
                 >
                   <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-primary-peach shrink-0" />
-                    Bespoke Table Booking
+                    Book a Table
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -173,7 +173,7 @@ export default function FindUs() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Email Mailbox</label>
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Email</label>
                       <input
                         type="email"
                         required
@@ -187,7 +187,7 @@ export default function FindUs() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="flex flex-col gap-2">
-                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Active Contact Phone</label>
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Phone Number</label>
                       <input
                         type="tel"
                         required
@@ -199,7 +199,7 @@ export default function FindUs() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Calender Date</label>
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Date</label>
                       <input
                         type="date"
                         required
@@ -210,7 +210,7 @@ export default function FindUs() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Time Frame</label>
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Time</label>
                       <input
                         type="time"
                         required
@@ -223,7 +223,7 @@ export default function FindUs() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex flex-col gap-2">
-                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Co-guests Count</label>
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Guests</label>
                       <select
                         value={formData.guests}
                         onChange={(e) => setFormData({ ...formData, guests: parseInt(e.target.value) })}
@@ -238,7 +238,7 @@ export default function FindUs() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Special Accommodations</label>
+                      <label className="text-zinc-400 text-xs font-medium tracking-wider uppercase">Special Requests</label>
                       <input
                         type="text"
                         placeholder="e.g. Birthday anniversary, wheelchair access"
@@ -250,12 +250,14 @@ export default function FindUs() {
                   </div>
 
                   <div className="pt-4">
-                    <button
+                    <motion.button
                       type="submit"
-                      className="w-full py-4.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-extrabold text-sm tracking-widest rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-primary-peach/10 cursor-pointer uppercase"
+                      animate={{ scale: [1, 1.03, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      className="w-full py-4.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-extrabold text-sm tracking-widest rounded-2xl hover:shadow-lg hover:shadow-primary-peach/10 cursor-pointer uppercase"
                     >
-                      SECURE BRUTALIST RESERVATION
-                    </button>
+                      RESERVE TABLE
+                    </motion.button>
                   </div>
                 </motion.form>
               )}

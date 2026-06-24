@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { Plus, Minus, Trash2, Loader2, AlertCircle, RefreshCw, MapPin } from 'lucide-react';
-import { MenuItem, MenuCategory } from '../types';
+import { Plus, Minus, Trash2, Loader2, AlertCircle, RefreshCw, Building2 } from 'lucide-react';
+import { MenuItem, MenuCategoryGroup } from '../types';
 import { formatPKR } from '../lib/currency';
+import { FALLBACK_IMAGE } from '../lib/mappers';
 
 interface MenuProps {
-  items: MenuItem[];
-  categories: MenuCategory[];
+  groups: MenuCategoryGroup[];
   loading: boolean;
   loadingHint: string | null;
   error: string | null;
@@ -21,12 +21,11 @@ interface MenuProps {
 }
 
 // Vertical offset (px) the fixed header + sticky tab bar occupy. Used for
-// scroll-spy detection and to land section headings just below the bar.
+// scroll-spy detection and to land headings just below the bar.
 const SCROLL_OFFSET = 150;
 
 export default function Menu({
-  items,
-  categories,
+  groups,
   loading,
   loadingHint,
   error,
@@ -40,33 +39,27 @@ export default function Menu({
   branchName,
   onChangeBranch,
 }: MenuProps) {
-  const [activeCategory, setActiveCategory] = useState<string>('');
+  const [activeGroup, setActiveGroup] = useState<string>('');
 
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  const groupRefs = useRef<Record<string, HTMLElement | null>>({});
+  const subcatRefs = useRef<Record<string, HTMLElement | null>>({});
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const tabBarRef = useRef<HTMLDivElement | null>(null);
   // Set while a click-to-scroll is animating, so the scroll-spy doesn't fight it.
   const isClickScrolling = useRef(false);
   const scrollRaf = useRef<number>(0);
 
-  // Only show categories that actually have items.
-  const visibleCategories = categories.filter((cat) =>
-    items.some((item) => item.category === cat.id),
-  );
-
-  // Default to (or keep a valid) active category as data loads.
+  // Default to (or keep a valid) active group as data loads.
   useEffect(() => {
-    if (visibleCategories.length === 0) return;
-    setActiveCategory((current) =>
-      visibleCategories.some((c) => c.id === current)
-        ? current
-        : visibleCategories[0].id,
+    if (groups.length === 0) return;
+    setActiveGroup((current) =>
+      groups.some((g) => g.id === current) ? current : groups[0].id,
     );
-  }, [visibleCategories]);
+  }, [groups]);
 
-  // Scroll-spy: highlight the category whose section is currently in view.
+  // Scroll-spy: highlight the group whose section is currently in view.
   useEffect(() => {
-    if (visibleCategories.length === 0) return;
+    if (groups.length === 0) return;
 
     let frame = 0;
     const handleScroll = () => {
@@ -76,19 +69,19 @@ export default function Menu({
         const atBottom =
           window.innerHeight + window.scrollY >= document.body.scrollHeight - 4;
         if (atBottom) {
-          setActiveCategory(visibleCategories[visibleCategories.length - 1].id);
+          setActiveGroup(groups[groups.length - 1].id);
           return;
         }
 
-        let current = visibleCategories[0].id;
-        for (const cat of visibleCategories) {
-          const el = sectionRefs.current[cat.id];
+        let current = groups[0].id;
+        for (const group of groups) {
+          const el = groupRefs.current[group.id];
           if (!el) continue;
           if (el.getBoundingClientRect().top - SCROLL_OFFSET <= 1) {
-            current = cat.id;
+            current = group.id;
           }
         }
-        setActiveCategory(current);
+        setActiveGroup(current);
       });
     };
 
@@ -98,20 +91,20 @@ export default function Menu({
       window.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(frame);
     };
-  }, [visibleCategories]);
+  }, [groups]);
 
   useEffect(() => () => cancelAnimationFrame(scrollRaf.current), []);
 
   // Keep the active tab centered within the horizontal strip.
   useEffect(() => {
     const bar = tabBarRef.current;
-    const tab = activeCategory ? tabRefs.current[activeCategory] : null;
+    const tab = activeGroup ? tabRefs.current[activeGroup] : null;
     if (!bar || !tab) return;
     bar.scrollTo({
       left: Math.max(0, tab.offsetLeft - bar.clientWidth / 2 + tab.clientWidth / 2),
       behavior: 'smooth',
     });
-  }, [activeCategory]);
+  }, [activeGroup]);
 
   // Custom rAF smooth scroll — reliable across browsers.
   const animateScrollTo = (targetY: number, duration = 650) => {
@@ -133,12 +126,19 @@ export default function Menu({
     scrollRaf.current = requestAnimationFrame(step);
   };
 
-  const handleTabClick = (categoryId: string) => {
-    setActiveCategory(categoryId);
-    const el = sectionRefs.current[categoryId];
+  const scrollToEl = (el: HTMLElement | null) => {
     if (!el) return;
-    const top = el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
-    animateScrollTo(top);
+    animateScrollTo(el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET);
+  };
+
+  const handleTabClick = (groupId: string) => {
+    setActiveGroup(groupId);
+    scrollToEl(groupRefs.current[groupId]);
+  };
+
+  const handleSubcatClick = (groupId: string, subId: string) => {
+    setActiveGroup(groupId);
+    scrollToEl(subcatRefs.current[subId]);
   };
 
   const renderItemCard = (item: MenuItem) => {
@@ -156,6 +156,10 @@ export default function Menu({
               src={item.image}
               alt={item.name}
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                const img = e.currentTarget;
+                if (img.src !== FALLBACK_IMAGE) img.src = FALLBACK_IMAGE;
+              }}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c]/50 via-transparent to-transparent opacity-40" />
@@ -235,6 +239,15 @@ export default function Menu({
     );
   };
 
+  const itemsGrid = (list: MenuItem[]) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {list.map(renderItemCard)}
+    </div>
+  );
+
+  const groupItemCount = (group: MenuCategoryGroup) =>
+    group.subcategories.reduce((sum, sub) => sum + sub.items.length, 0);
+
   return (
     <section
       id="menu-section"
@@ -257,7 +270,7 @@ export default function Menu({
             onClick={onChangeBranch}
             className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-950 border border-white/5 hover:border-primary-peach/30 transition-all cursor-pointer group"
           >
-            <MapPin className="w-4 h-4 text-primary-peach shrink-0" />
+            <Building2 className="w-4 h-4 text-primary-peach shrink-0" />
             <span className="text-xs text-zinc-300">
               {branchName ? (
                 <>
@@ -275,8 +288,8 @@ export default function Menu({
         </div>
       </div>
 
-      {/* Sticky underline tab strip */}
-      {visibleCategories.length > 0 && (
+      {/* Sticky underline tab strip — top-level category groups */}
+      {groups.length > 0 && (
         <div className="sticky top-20 z-30 bg-[#1c1c1c]/95 backdrop-blur-md border-b border-white/10 mt-8">
           <div className="max-w-7xl mx-auto px-6">
             <div className="relative">
@@ -285,28 +298,26 @@ export default function Menu({
                 id="category-tabs"
                 className="flex gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
               >
-                {visibleCategories.map((cat) => {
-                  const active = activeCategory === cat.id;
+                {groups.map((group) => {
+                  const active = activeGroup === group.id;
                   return (
                     <button
-                      key={cat.id}
+                      key={group.id}
                       ref={(el) => {
-                        tabRefs.current[cat.id] = el;
+                        tabRefs.current[group.id] = el;
                       }}
-                      onClick={() => handleTabClick(cat.id)}
-                      className={`relative shrink-0 px-4 py-4 text-[11px] font-semibold tracking-[0.12em] uppercase whitespace-nowrap transition-colors focus:outline-none cursor-pointer ${
-                        active ? 'text-primary-peach' : 'text-zinc-400 hover:text-white'
+                      onClick={() => handleTabClick(group.id)}
+                      className={`shrink-0 my-2.5 px-5 py-2 rounded-full text-[11px] font-semibold tracking-[0.12em] uppercase whitespace-nowrap transition-all focus:outline-none cursor-pointer ${
+                        active
+                          ? 'bg-primary-peach text-black shadow-lg shadow-primary-peach/10'
+                          : 'text-zinc-400 hover:text-white hover:bg-white/5'
                       }`}
                     >
-                      {cat.name}
-                      {active && (
-                        <span className="absolute left-2 right-2 bottom-0 h-0.5 bg-primary-peach rounded-full" />
-                      )}
+                      {group.name}
                     </button>
                   );
                 })}
               </div>
-              {/* Edge fades to hint at horizontal scrollability */}
               <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-[#1c1c1c] to-transparent" />
               <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-[#1c1c1c] to-transparent" />
             </div>
@@ -352,7 +363,7 @@ export default function Menu({
         )}
 
         {/* Empty state */}
-        {!loading && !error && visibleCategories.length === 0 && (
+        {!loading && !error && groups.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <p className="text-zinc-400 text-sm font-semibold">No items here yet</p>
             <p className="text-zinc-600 text-xs mt-1">
@@ -361,30 +372,71 @@ export default function Menu({
           </div>
         )}
 
-        {/* All category sections, stacked */}
-        {!loading && !error && visibleCategories.length > 0 && (
-          <div className="space-y-14 pt-12">
-            {visibleCategories.map((cat) => {
-              const categoryItems = items.filter((item) => item.category === cat.id);
+        {/* Category groups, each with subcategory pills + sections */}
+        {!loading && !error && groups.length > 0 && (
+          <div className="space-y-16 pt-12">
+            {groups.map((group) => {
+              const multiSub = group.subcategories.length > 1;
               return (
                 <section
-                  key={cat.id}
+                  key={group.id}
                   ref={(el) => {
-                    sectionRefs.current[cat.id] = el;
+                    groupRefs.current[group.id] = el;
                   }}
                   className="scroll-mt-[150px]"
                 >
-                  <div className="flex items-baseline justify-between gap-4 mb-7 pb-3 border-b border-white/5">
+                  {/* Group heading */}
+                  <div className="flex items-baseline justify-between gap-4 mb-6 pb-3 border-b border-white/5">
                     <h3 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
-                      {cat.name}
+                      {group.name}
                     </h3>
                     <span className="text-[11px] font-mono text-zinc-500 shrink-0">
-                      {categoryItems.length} {categoryItems.length === 1 ? 'item' : 'items'}
+                      {groupItemCount(group)} items
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {categoryItems.map(renderItemCard)}
-                  </div>
+
+                  {/* Subcategory pills (only when there's more than one) */}
+                  {multiSub && (
+                    <div className="flex flex-wrap gap-2 mb-9">
+                      {group.subcategories.map((sub) => (
+                        <button
+                          key={sub.id}
+                          onClick={() => handleSubcatClick(group.id, sub.id)}
+                          className="px-4 py-1.5 rounded-full text-[10px] font-semibold tracking-[0.1em] uppercase bg-zinc-950 border border-white/5 text-zinc-300 hover:text-primary-peach hover:border-primary-peach/40 transition-all cursor-pointer"
+                        >
+                          {sub.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {multiSub ? (
+                    <div className="space-y-12">
+                      {group.subcategories.map((sub) => (
+                        <div
+                          key={sub.id}
+                          ref={(el) => {
+                            subcatRefs.current[sub.id] = el;
+                          }}
+                          className="scroll-mt-[150px]"
+                        >
+                          <div className="flex items-baseline justify-between gap-4 mb-5">
+                            <h4 className="text-lg md:text-xl font-bold text-white tracking-tight flex items-center gap-2.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-primary-peach" />
+                              {sub.name}
+                            </h4>
+                            <span className="text-[11px] font-mono text-zinc-500 shrink-0">
+                              {sub.items.length} {sub.items.length === 1 ? 'item' : 'items'}
+                            </span>
+                          </div>
+                          {itemsGrid(sub.items)}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    // Single subcategory → render its items directly.
+                    itemsGrid(group.subcategories[0]?.items ?? [])
+                  )}
                 </section>
               );
             })}

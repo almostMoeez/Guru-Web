@@ -23,6 +23,18 @@ export const AUTH_TOKEN_KEY = 'guru.auth.token';
 // localStorage key for the user's selected branch.
 export const BRANCH_STORAGE_KEY = 'guru.branch.id';
 
+// WhatsApp contact number (international format, digits only) for the floating
+// chat button. Override with VITE_WHATSAPP_NUMBER.
+export const WHATSAPP_NUMBER: string =
+  import.meta.env.VITE_WHATSAPP_NUMBER ?? '923001234567';
+
+// Sales tax rates by payment method (Punjab practice: lower GST on card/digital,
+// higher on cash). The backend doesn't compute tax, so this is a UI estimate.
+export const TAX_RATES: Record<'cash' | 'card', number> = {
+  cash: 0.16,
+  card: 0.05,
+};
+
 export interface BranchOption {
   /** Must match the backend `branches.id` for orders to succeed. */
   id: string;

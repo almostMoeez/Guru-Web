@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Header from './components/Header';
 // Legacy hero retained for reference — replaced by the new restaurant homepage.
@@ -11,6 +11,9 @@ import CartOverlay, { CheckoutInfo } from './components/CartOverlay';
 import CustomizationOverlay from './components/CustomizationOverlay';
 import AuthModal from './components/AuthModal';
 import BranchModal from './components/BranchModal';
+import WhatsAppButton from './components/WhatsAppButton';
+import ProfilePage from './components/ProfilePage';
+import OrderHistoryPage from './components/OrderHistoryPage';
 import { MenuItem, CartItem, SelectedConfig, CustomizationChoice } from './types';
 import { useMenu } from './hooks/useMenu';
 import { useAddresses } from './hooks/useAddresses';
@@ -19,7 +22,7 @@ import { useBranch } from './lib/branch/BranchContext';
 import { createOrder } from './lib/api/orders';
 import { updateProfile, createAddress } from './lib/api/users';
 import { DEFAULT_BRANCH_ID } from './lib/config';
-import type { CreateOrderItem, CreateOrderPayload } from './lib/api/types';
+import type { CreateOrderItem, CreateOrderPayload, OrderType } from './lib/api/types';
 import logoImg from './assets/images/logo.png';
 
 // Stable custom cartId generator for personalized options identification
@@ -40,6 +43,8 @@ const SECTION_PATHS: Record<string, string> = {
   menu: '/menu',
   story: '/story',
   contact: '/contact',
+  profile: '/profile',
+  orders: '/orders',
 };
 
 const PATH_SECTIONS: Record<string, string> = {
@@ -47,6 +52,8 @@ const PATH_SECTIONS: Record<string, string> = {
   '/menu': 'menu',
   '/story': 'story',
   '/contact': 'contact',
+  '/profile': 'profile',
+  '/orders': 'orders',
 };
 
 const SECTION_TITLES: Record<string, string> = {
@@ -54,6 +61,8 @@ const SECTION_TITLES: Record<string, string> = {
   menu: 'Menu — Guru',
   story: 'Our Story — Guru',
   contact: 'Contact Us — Guru',
+  profile: 'My Profile — Guru',
+  orders: 'Order History — Guru',
 };
 
 const getInitialSection = (): string =>
@@ -64,20 +73,23 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<string>(getInitialSection);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [customizingItem, setCustomizingItem] = useState<MenuItem | null>(null);
+  const [editingCartItem, setEditingCartItem] = useState<CartItem | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
   const [isBranchOpen, setIsBranchOpen] = useState<boolean>(false);
+  const [orderType, setOrderType] = useState<OrderType>('delivery');
 
-  const { items: menuItems, categories, loading: menuLoading, loadingHint: menuLoadingHint, error: menuError, reload: reloadMenu } = useMenu();
+  const { groups: menuGroups, loading: menuLoading, loadingHint: menuLoadingHint, error: menuError, reload: reloadMenu } = useMenu();
   const { isAuthenticated, user, refreshProfile } = useAuth();
   const { addresses, reload: reloadAddresses } = useAddresses(isAuthenticated);
   const { branchId, branch, hasSelected: hasBranch, selectBranch } = useBranch();
 
-  // Prompt for a branch the first time the user lands on the menu page.
+  // Prompt for a branch as soon as the app loads if one isn't selected yet —
+  // on any screen, not just the menu.
   useEffect(() => {
-    if (activeSection === 'menu' && !hasBranch) {
+    if (!hasBranch) {
       setIsBranchOpen(true);
     }
-  }, [activeSection, hasBranch]);
+  }, [hasBranch]);
 
   // Sync page title on mount.
   useEffect(() => {
@@ -95,6 +107,19 @@ export default function App() {
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
+
+  // Menu item id -> name, used to label order-history line items.
+  const itemNameById = useMemo(() => {
+    const map: Record<string, string> = {};
+    menuGroups.forEach((group) =>
+      group.subcategories.forEach((sub) =>
+        sub.items.forEach((item) => {
+          map[item.id] = item.name;
+        }),
+      ),
+    );
+    return map;
+  }, [menuGroups]);
 
   // Map of item ID to aggregate count (sum of all configurations for menu state rendering)
   const itemQuantities = cartItems.reduce<Record<string, number>>((acc, item) => {
@@ -136,8 +161,37 @@ export default function App() {
     // Note: Do NOT auto open the cart here to satisfy user requirements.
   };
 
+  // Open the customizer to edit an existing cart line's options.
+  const handleEditCartItem = (cartItem: CartItem) => {
+    setEditingCartItem(cartItem);
+    setCustomizingItem(cartItem.menuItem);
+  };
+
+  const closeCustomizer = () => {
+    setCustomizingItem(null);
+    setEditingCartItem(null);
+  };
+
   // Confirm custom configurations handler from the customize screen
   const handleConfirmCustomization = (item: MenuItem, selectedConfig: SelectedConfig) => {
+    if (editingCartItem) {
+      // Editing an existing line: replace it (preserving quantity).
+      const qty = editingCartItem.quantity;
+      const newCartId = generateCartId(item.id, selectedConfig);
+      setCartItems((prev) => {
+        const withoutOld = prev.filter((p) => p.cartId !== editingCartItem.cartId);
+        const existing = withoutOld.find((p) => p.cartId === newCartId);
+        if (existing) {
+          return withoutOld.map((p) =>
+            p.cartId === newCartId ? { ...p, quantity: p.quantity + qty } : p,
+          );
+        }
+        return [...withoutOld, { cartId: newCartId, menuItem: item, quantity: qty, selectedConfig }];
+      });
+      setEditingCartItem(null);
+      setCustomizingItem(null);
+      return;
+    }
     handleAddToOrder(item, selectedConfig);
     setCustomizingItem(null);
   };
@@ -187,12 +241,6 @@ export default function App() {
         })
         .filter((p) => p.quantity > 0);
     });
-  };
-
-  const handleUpdateNote = (cartId: string, note: string) => {
-    setCartItems((prevItems) =>
-      prevItems.map((p) => (p.cartId === cartId ? { ...p, note } : p)),
-    );
   };
 
   const handleRemoveItem = (cartId: string) => {
@@ -253,25 +301,20 @@ export default function App() {
       };
     });
 
-    // The backend has no per-item note field, so fold each item's special
-    // request into the order-level specialInstructions.
-    const itemRequests = cartItems
-      .filter((item) => item.note && item.note.trim())
-      .map((item) => `${item.menuItem.name}: ${item.note!.replace(/\s+/g, ' ').trim()}`);
-
     const specialInstructions = [
       `Name: ${info.firstName} ${info.lastName}`,
       `Phone: ${info.phone}`,
-      info.riderNote ? `Rider note: ${info.riderNote}` : '',
-      itemRequests.length ? `Item requests: ${itemRequests.join('; ')}` : '',
+      info.riderNote ? `Special request: ${info.riderNote}` : '',
     ]
       .filter(Boolean)
       .join(' | ');
 
     const payload: CreateOrderPayload = {
       branchId: branchId ?? DEFAULT_BRANCH_ID,
-      orderType: 'delivery',
-      ...(deliveryAddressId ? { deliveryAddressId } : {}),
+      orderType,
+      paymentMethod: info.paymentMethod,
+      // Pickup orders carry no delivery address.
+      ...(orderType !== 'takeaway' && deliveryAddressId ? { deliveryAddressId } : {}),
       specialInstructions,
       orderItems,
     };
@@ -323,8 +366,7 @@ export default function App() {
 
               {activeSection === 'menu' && (
                 <Menu
-                  items={menuItems}
-                  categories={categories}
+                  groups={menuGroups}
                   loading={menuLoading}
                   loadingHint={menuLoadingHint}
                   error={menuError}
@@ -343,6 +385,18 @@ export default function App() {
               {activeSection === 'story' && <OurStory />}
 
               {activeSection === 'contact' && <FindUs />}
+
+              {activeSection === 'profile' && (
+                <ProfilePage onRequireAuth={() => setIsAuthOpen(true)} />
+              )}
+
+              {activeSection === 'orders' && (
+                <OrderHistoryPage
+                  onRequireAuth={() => setIsAuthOpen(true)}
+                  itemNameById={itemNameById}
+                  onBrowseMenu={() => handleNavigate('menu')}
+                />
+              )}
             </motion.div>
           </AnimatePresence>
         </main>
@@ -354,9 +408,9 @@ export default function App() {
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems}
         onUpdateQuantity={handleUpdateQuantity}
-        onUpdateNote={handleUpdateNote}
         onRemoveItem={handleRemoveItem}
         onClearCart={handleClearCart}
+        onEditItem={handleEditCartItem}
         isAuthenticated={isAuthenticated}
         onRequireAuth={() => setIsAuthOpen(true)}
         onPlaceOrder={handlePlaceOrder}
@@ -364,23 +418,32 @@ export default function App() {
         defaultLastName={user?.lastName ?? ''}
         defaultPhone={user?.phone ?? ''}
         savedAddresses={addresses}
+        branchName={branch?.name ?? null}
+        orderType={orderType}
+        onOrderTypeChange={setOrderType}
       />
 
       {/* Shared Customization Modal Dialog */}
       <CustomizationOverlay
         isOpen={customizingItem !== null}
-        onClose={() => setCustomizingItem(null)}
+        onClose={closeCustomizer}
         menuItem={customizingItem}
+        initialConfig={editingCartItem?.selectedConfig ?? null}
         onConfirm={handleConfirmCustomization}
       />
 
       {/* Email + OTP Login Modal */}
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
 
+      {/* Floating WhatsApp chat button */}
+      <WhatsAppButton />
+
       {/* Branch Selection Modal */}
       <BranchModal
         isOpen={isBranchOpen}
         dismissable={hasBranch}
+        orderType={orderType}
+        onOrderTypeChange={setOrderType}
         onClose={() => setIsBranchOpen(false)}
         onSelect={(id) => {
           selectBranch(id);

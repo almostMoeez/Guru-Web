@@ -40,14 +40,26 @@ export interface ApiMenuItem {
   modifiers?: ApiMenuItemModifier[];
 }
 
-// GET /menu returns categories each with their items nested.
+// A subcategory (backend `categories` row) with its items.
+export interface ApiSubcategory {
+  id: string;
+  name: string;
+  description: string | null;
+  displayOrder: number | null;
+  imageUrl: string | null;
+  icon: string | null;
+  items: ApiMenuItem[];
+}
+
+// GET /menu returns top-level category groups, each with nested subcategories.
 export interface ApiCategoryGroup {
   id: string;
   name: string;
   description: string | null;
   displayOrder: number | null;
+  imageUrl: string | null;
   icon: string | null;
-  items: ApiMenuItem[];
+  subcategories: ApiSubcategory[];
 }
 
 export interface ApiCategory {
@@ -110,6 +122,7 @@ export interface CreateAddressPayload {
 
 // ----- Orders -----
 export type OrderType = 'delivery' | 'takeaway' | 'dine_in';
+export type PaymentMethod = 'cash' | 'card' | 'online';
 
 export interface CreateOrderItem {
   menuItemId: string;
@@ -120,9 +133,25 @@ export interface CreateOrderItem {
 export interface CreateOrderPayload {
   branchId: string;
   orderType: OrderType;
+  // Backend requires a payment method on every order.
+  paymentMethod: PaymentMethod;
   deliveryAddressId?: string;
   specialInstructions?: string;
   orderItems: CreateOrderItem[];
+}
+
+export interface ApiOrderItemModifier {
+  id: string;
+  modifierItemId: string;
+  priceAtOrder: string | number;
+}
+
+export interface ApiOrderItem {
+  id: string;
+  menuItemId: string;
+  quantity: number;
+  priceAtOrder: string | number;
+  orderItemModifiers?: ApiOrderItemModifier[];
 }
 
 export interface ApiOrder {
@@ -136,7 +165,8 @@ export interface ApiOrder {
   taxAmount: string | number;
   deliveryFee: string | number;
   totalPrice: string | number;
+  paymentType?: PaymentMethod;
   orderTime: string;
   estimatedTime: string | null;
-  orderItems: unknown[];
+  orderItems: ApiOrderItem[];
 }

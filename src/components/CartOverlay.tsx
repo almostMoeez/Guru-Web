@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, Plus, Minus, Flame, Check, X, ShoppingBag, Lock, AlertCircle, MapPin, PlusCircle } from 'lucide-react';
+import { Trash2, Plus, Minus, Flame, Check, X, ShoppingBag, Lock, AlertCircle, MapPin, PlusCircle, Bike, Store, Wallet, CreditCard, Pencil } from 'lucide-react';
 import { CartItem } from '../types';
 import { formatPKR } from '../lib/currency';
-import type { ApiOrder, ApiUserAddress } from '../lib/api/types';
+import { TAX_RATES } from '../lib/config';
+import type { ApiOrder, ApiUserAddress, OrderType, PaymentMethod } from '../lib/api/types';
 
 export interface NewAddressInput {
   addressLine1: string;
@@ -17,6 +18,7 @@ export interface CheckoutInfo {
   lastName: string;
   phone: string;
   riderNote: string;
+  paymentMethod: PaymentMethod;
   /** Set when an existing saved address was chosen. */
   selectedAddressId: string | null;
   /** Set when the user is entering a new address to save. */
@@ -30,9 +32,10 @@ interface CartOverlayProps {
   onClose: () => void;
   cartItems: CartItem[];
   onUpdateQuantity: (cartId: string, change: number) => void;
-  onUpdateNote: (cartId: string, note: string) => void;
   onRemoveItem: (cartId: string) => void;
   onClearCart: () => void;
+  /** Re-open the customizer to edit a customized cart line. */
+  onEditItem: (item: CartItem) => void;
   isAuthenticated: boolean;
   onRequireAuth: () => void;
   /** Places the order against the backend. Resolves with the created order. */
@@ -41,6 +44,9 @@ interface CartOverlayProps {
   defaultLastName?: string;
   defaultPhone?: string;
   savedAddresses: ApiUserAddress[];
+  branchName: string | null;
+  orderType: OrderType;
+  onOrderTypeChange: (type: OrderType) => void;
 }
 
 /** Compact one-line rendering of a saved address. */
@@ -52,9 +58,9 @@ export default function CartOverlay({
   onClose,
   cartItems,
   onUpdateQuantity,
-  onUpdateNote,
   onRemoveItem,
   onClearCart,
+  onEditItem,
   isAuthenticated,
   onRequireAuth,
   onPlaceOrder,
@@ -62,6 +68,9 @@ export default function CartOverlay({
   defaultLastName = '',
   defaultPhone = '',
   savedAddresses,
+  branchName,
+  orderType,
+  onOrderTypeChange,
 }: CartOverlayProps) {
   const [checkoutStep, setCheckoutStep] = useState<number>(0); // 0 = Idle, 1 = Customer Info, 2 = Placing, 3 = Completed
   const [activeBrewStep, setActiveBrewStep] = useState<number>(0);
@@ -80,9 +89,13 @@ export default function CartOverlay({
   const [postalCode, setPostalCode] = useState<string>('');
   const [landmark, setLandmark] = useState<string>('');
 
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [orderError, setOrderError] = useState<string | null>(null);
   const [placedOrder, setPlacedOrder] = useState<ApiOrder | null>(null);
+
+  const isPickup = orderType === 'takeaway';
 
   const getItemSinglePrice = (item: CartItem) => {
     const modificationsPrice = item.selectedConfig
@@ -92,14 +105,17 @@ export default function CartOverlay({
   };
 
   const subtotal = cartItems.reduce((acc, item) => acc + getItemSinglePrice(item) * item.quantity, 0);
-  // Backend charges no tax/delivery fee on web orders, so total === subtotal.
-  const total = subtotal;
+  // Tax depends on payment method (lower on card/digital). The backend doesn't
+  // compute tax, so this is a front-end estimate shown to the user.
+  const taxRate = TAX_RATES[paymentMethod];
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax;
 
   const brewProgressSteps = [
-    { label: 'Verifying Culinary Selection', desc: 'Confirming ingredients and kitchen slot reservation.' },
-    { label: 'Artisanal Preparation', desc: 'Pulling fresh elite espresso and hand-decorating pastries.' },
-    { label: 'Brewed to Perfection', desc: 'Thermal sealing your luxury beverage or gourmet culinary plate.' },
-    { label: 'Assembled & Packaged', desc: 'Secured under air-locked dome. Ready for courier.' }
+    { label: 'Confirming your order', desc: 'Checking your items and sending them to the kitchen.' },
+    { label: 'Preparing your food', desc: 'Our chefs are cooking everything fresh.' },
+    { label: 'Brewing to perfection', desc: 'Adding the finishing touches to your order.' },
+    { label: 'Packed and ready', desc: 'Sealed and handed over to the courier.' }
   ];
 
   // Prefill name/phone from the signed-in profile when the form opens.
@@ -156,12 +172,15 @@ export default function CartOverlay({
       newErrors.phone = 'Please enter a valid phone number';
     }
 
-    if (addressMode === 'saved') {
-      if (!selectedAddressId) newErrors.address = 'Please select a delivery address';
-    } else {
-      if (!addressLine1.trim()) newErrors.addressLine1 = 'Address is required';
-      if (!city.trim()) newErrors.city = 'City is required';
-      if (!postalCode.trim()) newErrors.postalCode = 'Postal code is required';
+    // Address is only required for delivery orders.
+    if (!isPickup) {
+      if (addressMode === 'saved') {
+        if (!selectedAddressId) newErrors.address = 'Please select a delivery address';
+      } else {
+        if (!addressLine1.trim()) newErrors.addressLine1 = 'Address is required';
+        if (!city.trim()) newErrors.city = 'City is required';
+        if (!postalCode.trim()) newErrors.postalCode = 'Postal code is required';
+      }
     }
 
     setErrors(newErrors);
@@ -182,12 +201,15 @@ export default function CartOverlay({
     e.preventDefault();
     if (!validateForm()) return;
 
-    const usingSaved = addressMode === 'saved';
+    // For pickup orders we don't collect/save a delivery address.
+    const usingSaved = !isPickup && addressMode === 'saved';
     const selected = usingSaved
       ? savedAddresses.find((a) => a.id === selectedAddressId) ?? null
       : null;
 
-    const deliveryAddressText = usingSaved
+    const deliveryAddressText = isPickup
+      ? `Pickup from ${branchName ?? 'our branch'}`
+      : usingSaved
       ? selected
         ? formatAddress(selected)
         : ''
@@ -200,15 +222,17 @@ export default function CartOverlay({
       lastName: lastName.trim(),
       phone: phone.trim(),
       riderNote: riderNote.trim(),
+      paymentMethod,
       selectedAddressId: usingSaved ? selectedAddressId : null,
-      newAddress: usingSaved
-        ? null
-        : {
-            addressLine1: addressLine1.trim(),
-            city: city.trim(),
-            postalCode: postalCode.trim(),
-            landmark: landmark.trim() || undefined,
-          },
+      newAddress:
+        isPickup || usingSaved
+          ? null
+          : {
+              addressLine1: addressLine1.trim(),
+              city: city.trim(),
+              postalCode: postalCode.trim(),
+              landmark: landmark.trim() || undefined,
+            },
       deliveryAddressText,
     };
 
@@ -238,16 +262,27 @@ export default function CartOverlay({
     onClose();
   };
 
+  // Closing after an order is placed should also clear the cart, so the
+  // completed/voucher screen doesn't linger when the drawer is reopened.
+  const handleClose = () => {
+    if (checkoutStep === 3) {
+      handleResetCart();
+    } else {
+      onClose();
+    }
+  };
+
   const itemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const shortOrderId = placedOrder ? String(placedOrder.id).slice(0, 8).toUpperCase() : '';
   const recipientName = [firstName, lastName].filter(Boolean).join(' ');
-  const confirmedAddressText =
-    addressMode === 'saved'
-      ? (() => {
-          const a = savedAddresses.find((x) => x.id === selectedAddressId);
-          return a ? formatAddress(a) : '';
-        })()
-      : [addressLine1, landmark, city, postalCode].filter(Boolean).join(', ');
+  const confirmedAddressText = isPickup
+    ? (branchName ?? 'our branch')
+    : addressMode === 'saved'
+    ? (() => {
+        const a = savedAddresses.find((x) => x.id === selectedAddressId);
+        return a ? formatAddress(a) : '';
+      })()
+    : [addressLine1, landmark, city, postalCode].filter(Boolean).join(', ');
 
   const inputBase =
     'w-full bg-zinc-950 border rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors placeholder:text-zinc-650';
@@ -263,7 +298,7 @@ export default function CartOverlay({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute inset-0 bg-black/85 backdrop-blur-sm"
           />
 
@@ -281,12 +316,12 @@ export default function CartOverlay({
                 <div>
                   <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5 animate-none">
                     <ShoppingBag className="w-5 h-5 text-primary-peach" />
-                    Your Selection
+                    Your Order
                   </h3>
-                  <p className="text-zinc-500 text-xs font-light">Premium Culinary Experience</p>
+                  <p className="text-zinc-500 text-xs font-light">Review your order</p>
                 </div>
                 <button
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="p-2 rounded-full hover:bg-white/5 text-zinc-400 hover:text-white transition-colors cursor-pointer"
                   aria-label="Close cart"
                 >
@@ -377,6 +412,17 @@ export default function CartOverlay({
                                           <Plus className="w-3 h-3" />
                                         </button>
                                       </div>
+                                      {item.selectedConfig && Object.keys(item.selectedConfig).length > 0 && (
+                                        <>
+                                          <span className="text-zinc-800 block text-xs">|</span>
+                                          <button
+                                            onClick={() => onEditItem(item)}
+                                            className="flex items-center gap-1 text-primary-peach hover:text-primary-peach-light text-[10px] font-semibold uppercase tracking-wider transition-colors cursor-pointer"
+                                          >
+                                            <Pencil className="w-2.5 h-2.5" /> Edit
+                                          </button>
+                                        </>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
@@ -394,15 +440,6 @@ export default function CartOverlay({
                                   </button>
                                 </div>
                                 </div>
-
-                                {/* Per-item special request */}
-                                <textarea
-                                  rows={2}
-                                  value={item.note ?? ''}
-                                  onChange={(e) => onUpdateNote(item.cartId, e.target.value)}
-                                  placeholder="Special request (e.g. no mushrooms)"
-                                  className="w-full bg-zinc-950 border border-white/5 hover:border-white/10 focus:border-primary-peach rounded-lg px-3 py-2 text-xs text-white focus:outline-none transition-colors placeholder:text-zinc-600 resize-none"
-                                />
                               </div>
                             );
                           })}
@@ -421,11 +458,35 @@ export default function CartOverlay({
                     >
                       <div className="space-y-1">
                         <h4 className="text-white text-base font-bold uppercase tracking-wider">
-                          Customer Logistics
+                          {isPickup ? 'Pickup Details' : 'Delivery Details'}
                         </h4>
                         <p className="text-zinc-500 text-xs font-light">
                           We’ll save these to your profile for next time.
                         </p>
+                      </div>
+
+                      {/* Order type: delivery vs pickup */}
+                      <div className="grid grid-cols-2 gap-2 p-1 bg-zinc-950 border border-white/5 rounded-2xl">
+                        {([
+                          { type: 'delivery' as OrderType, label: 'Delivery', Icon: Bike },
+                          { type: 'takeaway' as OrderType, label: 'Pickup', Icon: Store },
+                        ]).map(({ type, label, Icon }) => {
+                          const active = orderType === type;
+                          return (
+                            <button
+                              key={type}
+                              type="button"
+                              onClick={() => onOrderTypeChange(type)}
+                              className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                                active
+                                  ? 'bg-primary-peach text-black'
+                                  : 'text-zinc-400 hover:text-white'
+                              }`}
+                            >
+                              <Icon className="w-4 h-4" /> {label}
+                            </button>
+                          );
+                        })}
                       </div>
 
                       {orderError && (
@@ -487,7 +548,8 @@ export default function CartOverlay({
                           )}
                         </div>
 
-                        {/* Address */}
+                        {/* Address (delivery only) */}
+                        {!isPickup ? (
                         <div className="space-y-3 pt-1">
                           <div className="flex items-center justify-between">
                             <label className="text-zinc-400 text-[10px] font-semibold tracking-wider uppercase block">
@@ -604,30 +666,90 @@ export default function CartOverlay({
                             </div>
                           )}
                         </div>
+                        ) : (
+                          <div className="flex items-start gap-3 p-4 rounded-2xl bg-zinc-950 border border-white/5">
+                            <Store className="w-4 h-4 text-primary-peach shrink-0 mt-0.5" />
+                            <p className="text-zinc-400 text-xs font-light leading-relaxed">
+                              Pick up your order from{' '}
+                              <span className="text-white font-semibold">{branchName ?? 'our branch'}</span>. We’ll have it ready for you.
+                            </p>
+                          </div>
+                        )}
 
-                        {/* Rider note */}
+                        {/* Special request */}
                         <div className="space-y-1.5">
                           <label className="text-zinc-400 text-[10px] font-semibold tracking-wider uppercase block">
-                            Rider Note <span className="text-zinc-600 font-light lowercase">(optional)</span>
+                            Special Request <span className="text-zinc-600 font-light lowercase">(optional)</span>
                           </label>
                           <input
                             type="text"
                             value={riderNote}
                             onChange={(e) => setRiderNote(e.target.value)}
-                            placeholder="e.g., Ring bell twice / Leave at gate"
+                            placeholder="e.g., No mushrooms / Ring bell twice"
                             className={`${inputBase} ${inputBorder()}`}
                           />
                         </div>
 
-                        {/* Order Summary */}
-                        <div className="p-4 rounded-2xl bg-zinc-950/85 border border-white/5 mt-6 space-y-2.5">
-                          <div className="flex justify-between text-xs text-zinc-500 font-mono">
-                            <span>Basket Items ({itemCount}):</span>
-                            <span className="text-white">{formatPKR(subtotal)}</span>
+                        {/* Payment method */}
+                        <div className="space-y-2 pt-1">
+                          <label className="text-zinc-400 text-[10px] font-semibold tracking-wider uppercase block">
+                            Payment Method
+                          </label>
+                          <div className="grid grid-cols-2 gap-2 p-1 bg-zinc-950 border border-white/5 rounded-2xl">
+                            {([
+                              { method: 'cash' as const, label: 'Cash', Icon: Wallet },
+                              { method: 'card' as const, label: 'Card', Icon: CreditCard },
+                            ]).map(({ method, label, Icon }) => {
+                              const active = paymentMethod === method;
+                              return (
+                                <button
+                                  key={method}
+                                  type="button"
+                                  onClick={() => setPaymentMethod(method)}
+                                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                                    active ? 'bg-primary-peach text-black' : 'text-zinc-400 hover:text-white'
+                                  }`}
+                                >
+                                  <Icon className="w-4 h-4" /> {label}
+                                </button>
+                              );
+                            })}
                           </div>
-                          <div className="border-t border-white/5 pt-2 flex justify-between text-xs text-white uppercase font-bold">
-                            <span>Total Due:</span>
-                            <span className="text-primary-peach font-mono">{formatPKR(total)}</span>
+                          <p className="text-zinc-600 text-[10px] font-light">
+                            {paymentMethod === 'card'
+                              ? 'Card / digital payments are taxed at a lower rate.'
+                              : 'Cash on delivery / pickup.'}
+                          </p>
+                        </div>
+
+                        {/* Order Summary — itemized */}
+                        <div className="p-4 rounded-2xl bg-zinc-950/85 border border-white/5 mt-6 space-y-3">
+                          <div className="space-y-2">
+                            {cartItems.map((item) => (
+                              <div key={item.cartId} className="flex justify-between gap-3 text-xs">
+                                <span className="text-zinc-300 min-w-0">
+                                  <span className="text-primary-peach font-semibold">{item.quantity}×</span>{' '}
+                                  {item.menuItem.name}
+                                </span>
+                                <span className="text-white font-mono shrink-0">
+                                  {formatPKR(getItemSinglePrice(item) * item.quantity)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="border-t border-white/5 pt-2.5 space-y-1.5">
+                            <div className="flex justify-between text-xs text-zinc-500 font-mono">
+                              <span>Subtotal</span>
+                              <span className="text-white">{formatPKR(subtotal)}</span>
+                            </div>
+                            <div className="flex justify-between text-xs text-zinc-500 font-mono">
+                              <span>Tax ({Math.round(taxRate * 100)}%)</span>
+                              <span className="text-white">{formatPKR(tax)}</span>
+                            </div>
+                            <div className="border-t border-white/5 pt-2 flex justify-between text-xs text-white uppercase font-bold">
+                              <span>Total Due</span>
+                              <span className="text-primary-peach font-mono">{formatPKR(total)}</span>
+                            </div>
                           </div>
                         </div>
 
@@ -644,7 +766,7 @@ export default function CartOverlay({
                             type="submit"
                             className="flex-[2] py-3 bg-primary-peach hover:bg-primary-peach-dark text-black font-semibold text-xs tracking-wider rounded-full transition-all duration-300 uppercase cursor-pointer text-center"
                           >
-                            CONFIRM & BREW
+                            CONFIRM ORDER
                           </button>
                         </div>
                       </form>
@@ -667,10 +789,10 @@ export default function CartOverlay({
                       </div>
 
                       <h4 className="text-white text-base font-bold mb-1 uppercase tracking-wider">
-                        GURU IS BREWING
+                        Your Order is Brewing
                       </h4>
                       <p className="text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-6">
-                        Placing your order…
+                        Please wait a moment…
                       </p>
 
                       <div className="w-full space-y-4 max-w-sm">
@@ -731,14 +853,16 @@ export default function CartOverlay({
                         <Check className="w-6 h-6" />
                       </div>
 
-                      <h4 className="text-white text-lg font-bold mb-2">Order Decanted!</h4>
+                      <h4 className="text-white text-lg font-bold mb-2">Order Confirmed!</h4>
                       <p className="text-zinc-400 text-xs font-light max-w-xs leading-relaxed mb-6">
-                        Your luxury selection will be dispatched under GURU’s master standards from the Gulberg delivery center.
+                        {isPickup
+                          ? `Your order will be ready for pickup at our ${branchName ?? 'nearest'} branch.`
+                          : `Your order will be prepared and delivered from our ${branchName ?? 'nearest'} branch.`}
                       </p>
 
                       <div className="w-full bg-zinc-950 border border-white/5 rounded-2xl p-4 mb-6 text-left space-y-2.5 font-mono text-[11px] text-zinc-500">
                         <div className="text-white font-bold pb-2 border-b border-white/5 text-[10px] tracking-wider uppercase">
-                          SUMMONS CARD VOUCHER
+                          ORDER SUMMARY
                         </div>
                         <div className="flex justify-between">
                           <span>Order Id:</span>
@@ -749,6 +873,14 @@ export default function CartOverlay({
                           <span className="text-primary-peach font-semibold uppercase">{placedOrder?.status ?? 'placed'}</span>
                         </div>
                         <div className="flex justify-between">
+                          <span>Type:</span>
+                          <span className="text-white font-semibold">{isPickup ? 'Pickup' : 'Delivery'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Payment:</span>
+                          <span className="text-white font-semibold uppercase">{paymentMethod}</span>
+                        </div>
+                        <div className="flex justify-between">
                           <span>Recipient Name:</span>
                           <span className="text-white font-semibold truncate max-w-[150px]">{recipientName}</span>
                         </div>
@@ -757,25 +889,23 @@ export default function CartOverlay({
                           <span className="text-white font-semibold">{phone}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Destination:</span>
+                          <span>{isPickup ? 'Pickup At:' : 'Destination:'}</span>
                           <span className="text-white font-semibold truncate max-w-[155px]" title={confirmedAddressText}>{confirmedAddressText}</span>
                         </div>
                         {riderNote.trim() && (
                           <div className="flex justify-between">
-                            <span>Runner Note:</span>
+                            <span>Special Request:</span>
                             <span className="text-white font-semibold truncate max-w-[155px]" title={riderNote}>{riderNote}</span>
                           </div>
                         )}
                         <div className="h-px bg-white/5 my-1" />
                         <div className="flex justify-between">
-                          <span>Est. Courier Waiting:</span>
-                          <span className="text-primary-peach font-semibold">Under 25 Mins</span>
+                          <span>{isPickup ? 'Ready In:' : 'Est. Delivery:'}</span>
+                          <span className="text-primary-peach font-semibold">Under ~45 Mins</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Total Paid:</span>
-                          <span className="text-white font-semibold">
-                            {formatPKR(placedOrder?.totalPrice ?? total)}
-                          </span>
+                          <span className="text-white font-semibold">{formatPKR(total)}</span>
                         </div>
                       </div>
 
@@ -783,7 +913,7 @@ export default function CartOverlay({
                         onClick={handleResetCart}
                         className="w-full py-3.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-bold text-xs tracking-wider rounded-full transition-all duration-300 uppercase cursor-pointer"
                       >
-                        BREW NEW ORDER
+                        NEW ORDER
                       </button>
                     </motion.div>
                   )}
@@ -794,15 +924,13 @@ export default function CartOverlay({
               {cartItems.length > 0 && checkoutStep === 0 && (
                 <div className="px-6 py-6 border-t border-white/5 bg-[#141414] space-y-4 shrink-0">
                   <div className="space-y-2 text-sm font-medium">
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Subtotal</span>
-                      <span className="text-white font-mono">{formatPKR(subtotal)}</span>
-                    </div>
-                    <div className="h-px bg-white/5 my-2" />
                     <div className="flex justify-between text-white font-bold text-base">
-                      <span>Total</span>
-                      <span className="text-primary-peach font-mono">{formatPKR(total)}</span>
+                      <span>Subtotal ({itemCount})</span>
+                      <span className="text-primary-peach font-mono">{formatPKR(subtotal)}</span>
                     </div>
+                    <p className="text-zinc-600 text-[10px] font-light">
+                      Taxes and total are calculated at checkout based on your payment method.
+                    </p>
                   </div>
 
                   <button

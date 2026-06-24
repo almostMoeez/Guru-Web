@@ -1,4 +1,5 @@
-import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Star,
   Flame,
@@ -8,13 +9,21 @@ import {
   Coffee,
   Clock,
   ArrowRight,
-  MapPin,
+  Building2,
   Quote,
-  Sparkles,
 } from 'lucide-react';
 import heroDishImage from '../assets/images/guru_hero_dish_1780074619455.png';
 import { formatPKR } from '../lib/currency';
 import { BRANCHES } from '../lib/config';
+
+// Images cycled in the hero showcase slider.
+const HERO_IMAGES = [
+  heroDishImage,
+  'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=900&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1476124369491-e7addf5db371?q=80&w=900&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=900&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1551183053-bf91a1d81141?q=80&w=900&auto=format&fit=crop',
+];
 
 interface HomePageProps {
   onExploreMenu: () => void;
@@ -68,15 +77,6 @@ const STATS = [
   { value: '25k+', label: 'Happy Guests' },
 ];
 
-const MARQUEE = [
-  'Flame-Grilled',
-  'Artisan Coffee',
-  'Fresh Daily',
-  'Hand-Crafted',
-  'Lahore Original',
-  'Made with Love',
-];
-
 const EXPERIENCE = [
   { icon: Flame, title: 'Flame-Grilled to Order', desc: 'Every dish fired the moment you order — never before.' },
   { icon: Leaf, title: 'Farm-Fresh Daily', desc: 'Produce hand-picked each morning from local growers.' },
@@ -93,6 +93,17 @@ export default function HomePage({
   onChooseBranch,
   branchName,
 }: HomePageProps) {
+  const [slide, setSlide] = useState(0);
+
+  // Auto-advance the hero slider.
+  useEffect(() => {
+    const id = setInterval(
+      () => setSlide((s) => (s + 1) % HERO_IMAGES.length),
+      3800,
+    );
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <div id="home-page" className="bg-[#1c1c1c] text-zinc-100 overflow-hidden">
       {/* ───────────────────────── HERO ───────────────────────── */}
@@ -138,12 +149,14 @@ export default function HomePage({
                 Explore Menu
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
-              <button
+              <motion.button
                 onClick={onFindUs}
-                className="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/20 hover:border-white hover:bg-white/5 text-white font-semibold text-xs tracking-[0.16em] rounded-full transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer uppercase"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                className="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/20 hover:border-white hover:bg-white/5 text-white font-semibold text-xs tracking-[0.16em] rounded-full cursor-pointer uppercase"
               >
                 Reserve a Table
-              </button>
+              </motion.button>
             </div>
 
             {/* Stats */}
@@ -174,44 +187,62 @@ export default function HomePage({
                 className="absolute inset-0 rounded-full border border-dashed border-primary-peach/20"
               />
               <div className="absolute inset-6 rounded-full overflow-hidden border border-white/10 shadow-2xl">
-                <img
-                  src={heroDishImage}
-                  alt="Guru signature dish"
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover scale-110"
-                />
+                <AnimatePresence>
+                  <motion.img
+                    key={slide}
+                    src={HERO_IMAGES[slide]}
+                    alt="Guru signature dish"
+                    referrerPolicy="no-referrer"
+                    initial={{ opacity: 0, scale: 1.18 }}
+                    animate={{ opacity: 1, scale: 1.1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1 }}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                </AnimatePresence>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
               </div>
 
-              {/* Floating badges */}
+              {/* Slider dots */}
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                {HERO_IMAGES.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSlide(i)}
+                    aria-label={`Show image ${i + 1}`}
+                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                      i === slide ? 'w-5 bg-primary-peach' : 'w-2 bg-white/30 hover:bg-white/50'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Floating info tags */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.6 }}
-                className="absolute -left-4 top-12 bg-[#242424]/90 backdrop-blur border border-white/10 rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3"
+                className="absolute -left-4 top-12 bg-black/50 backdrop-blur-md border border-white/10 rounded-full pl-2 pr-4 py-1.5 flex items-center gap-2.5"
               >
-                <div className="w-9 h-9 rounded-full bg-primary-peach/15 flex items-center justify-center">
-                  <Star className="w-4 h-4 text-primary-peach fill-primary-peach" />
-                </div>
-                <div>
-                  <div className="text-white text-sm font-bold leading-none">4.9</div>
-                  <div className="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">Rated by 25k</div>
-                </div>
+                <span className="w-7 h-7 rounded-full bg-primary-peach/20 flex items-center justify-center shrink-0">
+                  <Star className="w-3.5 h-3.5 text-primary-peach fill-primary-peach" />
+                </span>
+                <span className="flex items-baseline gap-1.5">
+                  <span className="text-white text-sm font-bold leading-none">4.9</span>
+                  <span className="text-[10px] text-zinc-400 font-light">Loved by 25k</span>
+                </span>
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.75 }}
-                className="absolute -right-2 bottom-16 bg-[#242424]/90 backdrop-blur border border-white/10 rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3"
+                className="absolute -right-2 bottom-16 bg-black/50 backdrop-blur-md border border-white/10 rounded-full pl-2 pr-4 py-1.5 flex items-center gap-2.5"
               >
-                <div className="w-9 h-9 rounded-full bg-primary-peach/15 flex items-center justify-center">
-                  <Flame className="w-4 h-4 text-primary-peach" />
-                </div>
-                <div>
-                  <div className="text-white text-sm font-bold leading-none">Fresh</div>
-                  <div className="text-[9px] text-zinc-500 uppercase tracking-wider mt-1">Grilled to order</div>
-                </div>
+                <span className="w-7 h-7 rounded-full bg-primary-peach/20 flex items-center justify-center shrink-0">
+                  <Flame className="w-3.5 h-3.5 text-primary-peach" />
+                </span>
+                <span className="text-[11px] text-zinc-200 font-medium">Flame-grilled fresh</span>
               </motion.div>
             </div>
           </motion.div>
@@ -224,35 +255,17 @@ export default function HomePage({
         </div>
       </section>
 
-      {/* ──────────────────── MARQUEE STRIP ──────────────────── */}
-      <div className="relative border-y border-white/5 bg-[#161616] py-5 overflow-hidden">
-        <motion.div
-          animate={{ x: ['0%', '-50%'] }}
-          transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
-          className="flex items-center gap-10 whitespace-nowrap w-max"
-        >
-          {[...MARQUEE, ...MARQUEE].map((word, i) => (
-            <div key={i} className="flex items-center gap-10">
-              <span className="text-xl md:text-2xl font-bold uppercase tracking-wide text-zinc-500">
-                {word}
-              </span>
-              <Sparkles className="w-4 h-4 text-primary-peach shrink-0" />
-            </div>
-          ))}
-        </motion.div>
-      </div>
-
       {/* ──────────────────── SIGNATURE DISHES ──────────────────── */}
       <section className="py-24 md:py-28 relative">
         <div className="absolute top-1/4 right-0 w-96 h-96 bg-primary-peach/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <motion.div {...reveal} className="max-w-2xl mb-14">
-            <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-primary-peach">
+            <h2 className="text-4xl md:text-5xl font-bold text-primary-peach tracking-tight leading-tight">
               Signature Selection
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight mt-4 leading-tight">
-              Dishes worth the journey
             </h2>
+            <p className="text-white text-base md:text-lg font-semibold tracking-wide mt-3">
+              Dishes worth the journey
+            </p>
             <p className="text-zinc-400 text-sm font-light mt-4 leading-relaxed">
               A handful of the plates our guests keep coming back for — each one
               built from the best of the season.
@@ -314,12 +327,12 @@ export default function HomePage({
       <section className="py-24 bg-[#161616] border-y border-white/5">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div {...reveal} className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-primary-peach">
+            <h2 className="text-4xl md:text-5xl font-bold text-primary-peach tracking-tight">
               The Guru Experience
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight mt-4">
-              More than a meal
             </h2>
+            <p className="text-white text-base md:text-lg font-semibold tracking-wide mt-3">
+              More than a meal
+            </p>
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -379,12 +392,12 @@ export default function HomePage({
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-primary-peach">
+            <h2 className="text-4xl md:text-5xl font-bold text-primary-peach tracking-tight leading-tight">
               Our Story
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight mt-4 leading-tight">
-              Born in Lahore, brewed with heart
             </h2>
+            <p className="text-white text-base md:text-lg font-semibold tracking-wide mt-3">
+              Born in Lahore, brewed with heart
+            </p>
             <p className="text-zinc-400 text-sm md:text-base font-light mt-5 leading-relaxed">
               Guru began with a simple belief — that great food and great coffee
               should feel like coming home. From a single counter to two buzzing
@@ -406,12 +419,12 @@ export default function HomePage({
       <section className="py-24 bg-[#161616] border-y border-white/5">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div {...reveal} className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-primary-peach">
+            <h2 className="text-4xl md:text-5xl font-bold text-primary-peach tracking-tight">
               Visit Us
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight mt-4">
-              Two homes in Lahore
             </h2>
+            <p className="text-white text-base md:text-lg font-semibold tracking-wide mt-3">
+              Two homes in Lahore
+            </p>
             <p className="text-zinc-400 text-sm font-light mt-4">
               {branchName ? (
                 <>
@@ -437,7 +450,7 @@ export default function HomePage({
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary-peach/5 rounded-full blur-2xl group-hover:bg-primary-peach/10 transition-colors" />
                 <div className="relative">
                   <div className="w-12 h-12 rounded-2xl bg-primary-peach/10 border border-primary-peach/15 flex items-center justify-center mb-5">
-                    <MapPin className="w-5 h-5 text-primary-peach" />
+                    <Building2 className="w-5 h-5 text-primary-peach" />
                   </div>
                   <h3 className="text-2xl font-bold text-white">{branch.name}</h3>
                   <p className="text-zinc-500 text-sm font-light mt-1">{branch.area}</p>

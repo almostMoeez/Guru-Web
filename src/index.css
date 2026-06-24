@@ -9,6 +9,11 @@
   --color-primary-peach-light: #ea8c43;
 }
 
+/* Bump the root size so all rem-based text/spacing scales up uniformly. */
+html {
+  font-size: 108.5%;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: #1c1c1c;

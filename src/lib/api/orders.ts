@@ -5,8 +5,6 @@ import type { ApiOrder, CreateOrderPayload } from './types';
 export const createOrder = (payload: CreateOrderPayload) =>
   apiFetch<ApiOrder>('/orders', { method: 'POST', body: payload, auth: true });
 
-/** GET /orders?userId=... — orders for a given user (JWT required). */
-export const fetchOrdersByUser = (userId: string) =>
-  apiFetch<ApiOrder[]>(`/orders?userId=${encodeURIComponent(userId)}`, {
-    auth: true,
-  });
+/** GET /orders — the signed-in user's own orders, newest first (JWT required). */
+export const fetchMyOrders = (signal?: AbortSignal) =>
+  apiFetch<ApiOrder[]>('/orders', { auth: true, signal });

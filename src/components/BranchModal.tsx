@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { X, MapPin, Check } from 'lucide-react';
+import { X, Building2, Check, Bike, Store } from 'lucide-react';
 import { useBranch } from '../lib/branch/BranchContext';
+import type { OrderType } from '../lib/api/types';
 
 interface BranchModalProps {
   isOpen: boolean;
@@ -8,6 +9,8 @@ interface BranchModalProps {
   dismissable: boolean;
   onClose: () => void;
   onSelect: (id: string) => void;
+  orderType: OrderType;
+  onOrderTypeChange: (type: OrderType) => void;
 }
 
 export default function BranchModal({
@@ -15,8 +18,11 @@ export default function BranchModal({
   dismissable,
   onClose,
   onSelect,
+  orderType,
+  onOrderTypeChange,
 }: BranchModalProps) {
   const { branches, branchId } = useBranch();
+  const isPickup = orderType === 'takeaway';
 
   return (
     <AnimatePresence>
@@ -49,14 +55,40 @@ export default function BranchModal({
 
             <div className="p-8 md:p-10">
               <div className="w-14 h-14 rounded-full bg-primary-peach/10 border border-primary-peach/20 flex items-center justify-center mb-6">
-                <MapPin className="w-6 h-6 text-primary-peach" />
+                <Building2 className="w-6 h-6 text-primary-peach" />
               </div>
 
               <h2 className="text-2xl font-bold text-white tracking-tight mb-2">
                 Choose your branch
               </h2>
-              <p className="text-zinc-400 text-sm font-light mb-7 leading-relaxed">
+              <p className="text-zinc-400 text-sm font-light mb-6 leading-relaxed">
                 Select the Guru outlet you’d like to order from. You can change this anytime.
+              </p>
+
+              {/* Delivery vs pickup */}
+              <div className="grid grid-cols-2 gap-2 p-1 bg-zinc-950 border border-white/5 rounded-2xl mb-6">
+                {([
+                  { type: 'delivery' as OrderType, label: 'Delivery', Icon: Bike },
+                  { type: 'takeaway' as OrderType, label: 'Pickup', Icon: Store },
+                ]).map(({ type, label, Icon }) => {
+                  const active = orderType === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => onOrderTypeChange(type)}
+                      className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                        active ? 'bg-primary-peach text-black' : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" /> {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <p className="text-zinc-500 text-[11px] font-mono uppercase tracking-wider mb-3">
+                {isPickup ? 'Pick up from' : 'Deliver from'}
               </p>
 
               <div className="space-y-3">
@@ -73,7 +105,7 @@ export default function BranchModal({
                       }`}
                     >
                       <span className="flex items-center gap-3">
-                        <MapPin
+                        <Building2
                           className={`w-5 h-5 shrink-0 ${
                             active ? 'text-primary-peach' : 'text-zinc-500'
                           }`}

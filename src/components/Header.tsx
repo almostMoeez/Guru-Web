@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Menu as MenuIcon, X, User, LogOut, MapPin } from 'lucide-react';
+import { ShoppingCart, Menu as MenuIcon, X, User, LogOut, Building2, ClipboardList } from 'lucide-react';
 import logoImg from '../assets/images/logo.png';
 import { useAuth } from '../lib/auth/AuthContext';
+import ProfileMenu from './ProfileMenu';
 
 interface HeaderProps {
   onCartClick: () => void;
@@ -14,7 +15,7 @@ interface HeaderProps {
 }
 
 export default function Header({ onCartClick, cartCount, activeSection, onNavigate, onAuthClick, branchName, onBranchClick }: HeaderProps) {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -57,7 +58,7 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
           onClick={() => handleLinkClick('home')}
           className="flex items-center cursor-pointer"
         >
-          <img src={logoImg} alt="Guru Logo" className="h-8 w-auto object-contain" />
+          <img src={logoImg} alt="Guru Logo" className="h-12 w-auto object-contain" />
         </div>
 
         {/* Desktop Navigation */}
@@ -87,7 +88,7 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
             className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/5 hover:border-primary-peach/30 text-zinc-300 hover:text-white text-xs font-medium transition-all max-w-[170px] cursor-pointer"
             title={branchName ? `Branch: ${branchName} — tap to change` : 'Select a branch'}
           >
-            <MapPin className="w-3.5 h-3.5 text-primary-peach shrink-0" />
+            <Building2 className="w-3.5 h-3.5 text-primary-peach shrink-0" />
             <span className="truncate">{branchName ?? 'Select branch'}</span>
           </button>
 
@@ -107,24 +108,8 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
 
           {/* Account / Auth */}
           {isAuthenticated ? (
-            <div className="hidden sm:flex items-center gap-1 pl-1">
-              <span
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/5 text-zinc-300 text-xs font-medium max-w-[160px]"
-                title={user?.email}
-              >
-                <User className="w-3.5 h-3.5 text-primary-peach shrink-0" />
-                <span className="truncate">
-                  {user?.firstName || user?.email?.split('@')[0] || 'Account'}
-                </span>
-              </span>
-              <button
-                onClick={logout}
-                className="p-2.5 rounded-full hover:bg-white/5 text-zinc-400 hover:text-rose-400 transition-all cursor-pointer"
-                aria-label="Sign out"
-                title="Sign out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+            <div className="hidden sm:block">
+              <ProfileMenu onNavigate={onNavigate} />
             </div>
           ) : (
             <button
@@ -180,7 +165,7 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
             className="flex items-center justify-between gap-2 py-2 text-left border-b border-white/5"
           >
             <span className="flex items-center gap-2 text-zinc-350">
-              <MapPin className="w-4 h-4 text-primary-peach" />
+              <Building2 className="w-4 h-4 text-primary-peach" />
               <span className="text-sm font-medium tracking-wide">
                 {branchName ? `Branch: ${branchName}` : 'Select branch'}
               </span>
@@ -199,15 +184,31 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
           </button>
 
           {isAuthenticated ? (
-            <button
-              onClick={() => {
-                logout();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full py-4 bg-zinc-900 border border-white/10 text-zinc-300 font-semibold text-sm tracking-wider rounded-full transition-all uppercase text-center flex items-center justify-center gap-2"
-            >
-              <LogOut className="w-4 h-4" /> Sign Out
-            </button>
+            <>
+              <button
+                onClick={() => handleLinkClick('profile')}
+                className="flex items-center gap-2 py-2 text-left text-zinc-350 hover:text-white border-b border-white/5"
+              >
+                <User className="w-4 h-4 text-primary-peach" />
+                <span className="text-sm font-medium tracking-wide">My Profile</span>
+              </button>
+              <button
+                onClick={() => handleLinkClick('orders')}
+                className="flex items-center gap-2 py-2 text-left text-zinc-350 hover:text-white border-b border-white/5"
+              >
+                <ClipboardList className="w-4 h-4 text-primary-peach" />
+                <span className="text-sm font-medium tracking-wide">Order History</span>
+              </button>
+              <button
+                onClick={() => {
+                  logout();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full py-4 bg-zinc-900 border border-white/10 text-rose-400 font-semibold text-sm tracking-wider rounded-full transition-all uppercase text-center flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-4 h-4" /> Sign Out
+              </button>
+            </>
           ) : (
             <button
               onClick={() => {

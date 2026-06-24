@@ -1,15 +1,25 @@
-import type { MenuItem, MenuCategory, CustomizationOption } from '../types';
+import type {
+  MenuItem,
+  MenuCategoryGroup,
+  CustomizationOption,
+} from '../types';
 import type { ApiCategoryGroup, ApiMenuItem } from './api/types';
 import { toAmount } from './currency';
+import { API_BASE_URL } from './config';
 
-// Shown when a backend item has no image.
-const FALLBACK_IMAGE =
+// Shown when a backend item has no image (or its image fails to load).
+export const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800&auto=format&fit=crop';
 
-// Resolve an item's image to a usable <img src>: prefer imageUrl, then a base64
-// payload (raw or data URI) if present, otherwise the fallback.
+// Resolve an item's image to a usable <img src>: prefer imageUrl (the backend
+// serves images statically from its root, so relative paths get the API base
+// prepended), then a base64 payload, otherwise the fallback.
 const resolveImage = (item: ApiMenuItem): string => {
-  if (item.imageUrl && item.imageUrl.trim()) return item.imageUrl;
+  const url = item.imageUrl?.trim();
+  if (url) {
+    if (/^https?:\/\//i.test(url) || url.startsWith('data:')) return url;
+    return `${API_BASE_URL}/${url.replace(/^\/+/, '')}`;
+  }
   const b64 = item.imageBase64;
   if (b64 && b64.trim()) {
     return b64.startsWith('data:') ? b64 : `data:image/jpeg;base64,${b64}`;
@@ -59,20 +69,23 @@ export const mapMenuItem = (
   };
 };
 
-/** Flatten GET /menu (categories with nested items) into a flat MenuItem[]. */
-export const mapMenu = (groups: ApiCategoryGroup[]): MenuItem[] =>
-  groups.flatMap((group) =>
-    (group.items ?? []).map((item) =>
-      mapMenuItem(item, String(group.id), group.name),
-    ),
-  );
-
-/** Derive the ordered category tab list from the grouped menu response. */
-export const mapCategories = (groups: ApiCategoryGroup[]): MenuCategory[] =>
-  [...groups]
-    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+/**
+ * Map GET /menu (category groups → subcategories → items) into the UI tree.
+ * Subcategories with no items are dropped; groups left empty are dropped too.
+ */
+export const mapMenu = (groups: ApiCategoryGroup[]): MenuCategoryGroup[] =>
+  groups
     .map((group) => ({
       id: String(group.id),
       name: group.name,
-      displayOrder: group.displayOrder ?? undefined,
-    }));
+      subcategories: (group.subcategories ?? [])
+        .map((sub) => ({
+          id: String(sub.id),
+          name: sub.name,
+          items: (sub.items ?? []).map((item) =>
+            mapMenuItem(item, String(sub.id), sub.name),
+          ),
+        }))
+        .filter((sub) => sub.items.length > 0),
+    }))
+    .filter((group) => group.subcategories.length > 0);

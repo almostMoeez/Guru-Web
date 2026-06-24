@@ -39,14 +39,25 @@ export interface MenuCategory {
   displayOrder?: number;
 }
 
+// A subcategory holds the actual menu items.
+export interface MenuSubcategory {
+  id: string;
+  name: string;
+  items: MenuItem[];
+}
+
+// A top-level category (the backend "category group") shown in the top tabs.
+export interface MenuCategoryGroup {
+  id: string;
+  name: string;
+  subcategories: MenuSubcategory[];
+}
+
 export interface CartItem {
   cartId: string; // Unique ID generated from item and configurations
   menuItem: MenuItem;
   quantity: number;
   selectedConfig?: SelectedConfig;
-  // Free-text per-item request (e.g. "no mushrooms"); folded into the order's
-  // specialInstructions at checkout since the backend has no per-item note field.
-  note?: string;
 }
 
 export interface Reservation {

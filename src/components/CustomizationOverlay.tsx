@@ -8,6 +8,8 @@ interface CustomizationOverlayProps {
   isOpen: boolean;
   onClose: () => void;
   menuItem: MenuItem | null;
+  /** When editing an existing cart line, pre-select its current options. */
+  initialConfig?: SelectedConfig | null;
   onConfirm: (item: MenuItem, selectedConfig: SelectedConfig) => void;
 }
 
@@ -15,27 +17,37 @@ export default function CustomizationOverlay({
   isOpen,
   onClose,
   menuItem,
+  initialConfig,
   onConfirm,
 }: CustomizationOverlayProps) {
+  const isEditing = Boolean(initialConfig);
   const [selectedConfig, setSelectedConfig] = useState<SelectedConfig>({});
 
-  // Initialize selected values with default values (first available choices)
+  // Initialize selections: from the existing config when editing, otherwise the
+  // first available choice for each option.
   useEffect(() => {
     if (menuItem && menuItem.customizationOptions) {
-      const initialConfig: SelectedConfig = {};
+      const config: SelectedConfig = {};
       menuItem.customizationOptions.forEach((option) => {
         if (option.choices && option.choices.length > 0) {
+          const preset = initialConfig?.[option.name];
           const first = option.choices[0];
-          initialConfig[option.name] = {
-            name: first.name,
-            extraPrice: first.extraPrice || 0,
-            modifierItemId: first.modifierItemId,
-          };
+          config[option.name] = preset
+            ? {
+                name: preset.name,
+                extraPrice: preset.extraPrice || 0,
+                modifierItemId: preset.modifierItemId,
+              }
+            : {
+                name: first.name,
+                extraPrice: first.extraPrice || 0,
+                modifierItemId: first.modifierItemId,
+              };
         }
       });
-      setSelectedConfig(initialConfig);
+      setSelectedConfig(config);
     }
-  }, [menuItem]);
+  }, [menuItem, initialConfig]);
 
   if (!menuItem || !menuItem.customizationOptions) return null;
 
@@ -72,7 +84,7 @@ export default function CustomizationOverlay({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
           />
 
           {/* Modal Container */}
@@ -182,7 +194,7 @@ export default function CustomizationOverlay({
                 className="px-6 py-3.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-bold text-xs tracking-wider rounded-full flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer uppercase shadow-lg shadow-primary-peach/5"
               >
                 <Check className="w-4 h-4 shrink-0" />
-                Add Customized Selection
+                {isEditing ? 'Save Changes' : 'Add Customized Selection'}
               </button>
             </div>
           </motion.div>
