@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MapPin, Phone, Clock, Calendar, CheckCircle2 } from 'lucide-react';
 import { Reservation } from '../types';
+import { BRANCHES } from '../lib/config';
 
 export default function FindUs() {
   const [formData, setFormData] = useState<Reservation>({
@@ -49,10 +50,10 @@ export default function FindUs() {
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div id="section-header" className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-primary-peach text-xs font-semibold tracking-[0.25em] uppercase block mb-3">
-            VISIT US
-          </span>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-primary-peach mb-3">
+            Visit Us
+          </h2>
+          <h2 className="text-white text-base md:text-lg font-semibold tracking-wide">
             Reserve a Table
           </h2>
           <div className="h-[2px] w-12 bg-primary-peach mx-auto my-6" />
@@ -65,19 +66,21 @@ export default function FindUs() {
           {/* Card left: Info & map placeholder */}
           <div className="lg:col-span-5 space-y-8 flex flex-col justify-between">
             <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-white mb-4">Lahore Branch</h3>
-              
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-zinc-900 border border-white/5 rounded-2xl text-primary-peach shrink-0 mt-1">
-                  <MapPin className="w-5 h-5" />
+              <h3 className="text-2xl font-bold text-white mb-2">Our Branches</h3>
+
+              {BRANCHES.map((branch) => (
+                <div key={branch.id} className="flex items-start gap-4">
+                  <div className="p-3 bg-zinc-900 border border-white/5 rounded-2xl text-primary-peach shrink-0 mt-1">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-white text-sm font-semibold mb-1">{branch.name} Branch</h4>
+                    <p className="text-zinc-400 text-xs font-light leading-relaxed">
+                      {branch.name}, {branch.area}, Pakistan
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-white text-sm font-semibold mb-1">Address</h4>
-                  <p className="text-zinc-400 text-xs font-light leading-relaxed">
-                    Main Boulevard Gulberg III (beside Mall 1), Lahore, Pakistan
-                  </p>
-                </div>
-              </div>
+              ))}
 
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-zinc-900 border border-white/5 rounded-2xl text-primary-peach shrink-0 mt-1">
@@ -98,7 +101,7 @@ export default function FindUs() {
                 <div>
                   <h4 className="text-white text-sm font-semibold mb-1">Phone</h4>
                   <p className="text-zinc-400 text-xs font-light leading-relaxed">
-                    +92 (42) 3571-GURU (4878)
+                    +92 300 1234567
                   </p>
                 </div>
               </div>
@@ -114,8 +117,8 @@ export default function FindUs() {
                 <div className="w-12 h-12 rounded-full bg-primary-peach/10 flex items-center justify-center text-primary-peach mx-auto mb-2 border border-primary-peach/20">
                   <MapPin className="w-6 h-6" />
                 </div>
-                <h4 className="text-white text-sm font-bold tracking-wider">Find Us on the Map</h4>
-                <p className="text-[11px] text-zinc-500 font-mono">31.5204° N, 74.3487° E</p>
+                <h4 className="text-white text-sm font-bold tracking-wider">Find Us in Lahore</h4>
+                <p className="text-[11px] text-zinc-500 font-mono">Wapda Town &amp; Model Town</p>
                 <span className="inline-block py-1 px-3 bg-zinc-900 rounded-full text-[10px] text-primary-peach border border-primary-peach/30 font-semibold uppercase tracking-widest mt-2">
                   Parking Available
                 </span>
@@ -252,11 +255,20 @@ export default function FindUs() {
                   <div className="pt-4">
                     <motion.button
                       type="submit"
-                      animate={{ scale: [1, 1.03, 1] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                      className="w-full py-4.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-extrabold text-sm tracking-widest rounded-2xl hover:shadow-lg hover:shadow-primary-peach/10 cursor-pointer uppercase"
+                      animate={{ scale: 1.05 }}
+                      transition={{ duration: 1.9, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+                      whileTap={{ scale: 0.98 }}
+                      style={{ willChange: 'transform' }}
+                      className="transform-gpu w-full py-4.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-extrabold text-sm tracking-widest rounded-2xl hover:shadow-lg hover:shadow-primary-peach/10 cursor-pointer uppercase"
                     >
-                      RESERVE TABLE
+                      {/* Counter-scale so the label stays a fixed size while the button pulses */}
+                      <motion.span
+                        className="inline-block"
+                        animate={{ scale: 1 / 1.05 }}
+                        transition={{ duration: 1.9, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+                      >
+                        RESERVE TABLE
+                      </motion.span>
                     </motion.button>
                   </div>
                 </motion.form>

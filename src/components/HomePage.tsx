@@ -151,11 +151,20 @@ export default function HomePage({
               </button>
               <motion.button
                 onClick={onFindUs}
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                className="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/20 hover:border-white hover:bg-white/5 text-white font-semibold text-xs tracking-[0.16em] rounded-full cursor-pointer uppercase"
+                animate={{ scale: 1.07 }}
+                transition={{ duration: 1.9, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+                whileTap={{ scale: 0.97 }}
+                style={{ willChange: 'transform' }}
+                className="transform-gpu w-full sm:w-auto px-8 py-4 bg-transparent border border-white/20 hover:border-white hover:bg-white/5 text-white font-semibold text-xs tracking-[0.16em] rounded-full cursor-pointer uppercase"
               >
-                Reserve a Table
+                {/* Counter-scale so the label stays a fixed size while the button pulses */}
+                <motion.span
+                  className="inline-block"
+                  animate={{ scale: 1 / 1.07 }}
+                  transition={{ duration: 1.9, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+                >
+                  Reserve a Table
+                </motion.span>
               </motion.button>
             </div>
 
