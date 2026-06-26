@@ -25,3 +25,11 @@ export const createAddress = (data: CreateAddressPayload) =>
     body: data,
     auth: true,
   });
+
+/** PATCH /users/addresses/:id — update an existing address (JWT required). */
+export const updateAddress = (addressId: string, data: CreateAddressPayload) =>
+  apiFetch<ApiUserAddress>(`/users/addresses/${encodeURIComponent(addressId)}`, {
+    method: 'PATCH',
+    body: data,
+    auth: true,
+  });

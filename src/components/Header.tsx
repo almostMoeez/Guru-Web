@@ -35,6 +35,7 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
     { id: 'home', label: 'HOME' },
     { id: 'menu', label: 'MENU' },
     { id: 'story', label: 'OUR STORY' },
+    { id: 'contact', label: 'CONTACT US' },
   ];
 
   const handleLinkClick = (id: string) => {
@@ -51,18 +52,18 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
           : 'bg-transparent border-transparent py-6'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <div className="w-full px-6 md:px-10 grid grid-cols-[1fr_auto_1fr] items-center">
         {/* Logo */}
-        <div 
+        <div
           id="header-logo"
           onClick={() => handleLinkClick('home')}
-          className="flex items-center cursor-pointer"
+          className="flex items-center cursor-pointer justify-self-start"
         >
           <img src={logoImg} alt="Guru Logo" className="h-12 w-auto object-contain" />
         </div>
 
         {/* Desktop Navigation */}
-        <nav id="desktop-nav" className="hidden md:flex items-center gap-12">
+        <nav id="desktop-nav" className="hidden md:flex items-center gap-10 justify-self-center">
           {menuItems.map((item) => (
             <button
               key={item.id}
@@ -80,7 +81,7 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
         </nav>
 
         {/* Actions */}
-        <div id="header-actions" className="flex items-center gap-4">
+        <div id="header-actions" className="flex items-center gap-4 justify-self-end">
           {/* Branch selector */}
           <button
             id="branch-trigger-btn"
@@ -121,14 +122,6 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
               Sign In
             </button>
           )}
-
-          <button
-            id="order-now-btn"
-            onClick={() => handleLinkClick('menu')}
-            className="hidden sm:inline-flex px-6 py-2.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-semibold text-xs tracking-wider rounded-full transition-all uppercase duration-300 hover:scale-105 active:scale-95 cursor-pointer"
-          >
-            ORDER NOW
-          </button>
 
           {/* Mobile menu trigger */}
           <button
@@ -173,14 +166,6 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
             <span className="text-primary-peach text-[10px] font-semibold uppercase tracking-wider">
               Change
             </span>
-          </button>
-
-          <button
-            id="mobile-order-now-btn"
-            onClick={() => handleLinkClick('menu')}
-            className="mt-4 w-full py-4 bg-primary-peach text-black font-bold text-sm tracking-wider rounded-full transition-all uppercase text-center"
-          >
-            ORDER NOW
           </button>
 
           {isAuthenticated ? (

@@ -1,10 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { motion } from 'motion/react';
-import { User, Mail, Phone, MapPin, Check, Loader2, Lock } from 'lucide-react';
+import { User, Mail, MapPin, Check, Loader2, Lock, Plus, Pencil } from 'lucide-react';
 import { useAuth } from '../lib/auth/AuthContext';
 import { useAddresses } from '../hooks/useAddresses';
 import { updateProfile } from '../lib/api/users';
 import { ApiError } from '../lib/api/client';
+import AddressFormModal from './AddressFormModal';
+import type { ApiUserAddress } from '../lib/api/types';
 
 interface ProfilePageProps {
   onRequireAuth: () => void;
@@ -12,7 +14,20 @@ interface ProfilePageProps {
 
 export default function ProfilePage({ onRequireAuth }: ProfilePageProps) {
   const { isAuthenticated, user, refreshProfile } = useAuth();
-  const { addresses } = useAddresses(isAuthenticated);
+  const { addresses, reload: reloadAddresses } = useAddresses(isAuthenticated);
+
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<ApiUserAddress | null>(null);
+
+  const openAddAddress = () => {
+    setEditingAddress(null);
+    setAddressModalOpen(true);
+  };
+
+  const openEditAddress = (addr: ApiUserAddress) => {
+    setEditingAddress(addr);
+    setAddressModalOpen(true);
+  };
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -171,12 +186,21 @@ export default function ProfilePage({ onRequireAuth }: ProfilePageProps) {
 
             {/* Saved addresses */}
             <div className="bg-[#242424] border border-white/5 rounded-3xl p-7">
-              <h3 className="text-white font-bold text-lg mb-5 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-primary-peach" /> Saved Addresses
-              </h3>
+              <div className="flex items-center justify-between gap-3 mb-5">
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-primary-peach" /> Saved Addresses
+                </h3>
+                <button
+                  onClick={openAddAddress}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary-peach/10 border border-primary-peach/30 hover:bg-primary-peach/15 text-primary-peach text-[11px] font-semibold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add
+                </button>
+              </div>
+
               {addresses.length === 0 ? (
                 <p className="text-zinc-500 text-sm font-light">
-                  No saved addresses yet — they’ll appear here after your first delivery order.
+                  No saved addresses yet — add one above or it’ll be saved after your first delivery order.
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -186,7 +210,7 @@ export default function ProfilePage({ onRequireAuth }: ProfilePageProps) {
                       className="flex items-start gap-3 px-4 py-3 rounded-2xl bg-zinc-950 border border-white/5"
                     >
                       <MapPin className="w-4 h-4 text-primary-peach shrink-0 mt-0.5" />
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="text-zinc-200 text-sm leading-snug">
                           {[a.addressLine1, a.landmark, a.city, a.postalCode].filter(Boolean).join(', ')}
                         </p>
@@ -196,6 +220,13 @@ export default function ProfilePage({ onRequireAuth }: ProfilePageProps) {
                           </span>
                         )}
                       </div>
+                      <button
+                        onClick={() => openEditAddress(a)}
+                        className="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-colors cursor-pointer shrink-0"
+                        title="Edit address"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -204,6 +235,13 @@ export default function ProfilePage({ onRequireAuth }: ProfilePageProps) {
           </motion.div>
         )}
       </div>
+
+      <AddressFormModal
+        isOpen={addressModalOpen}
+        address={editingAddress}
+        onClose={() => setAddressModalOpen(false)}
+        onSaved={reloadAddresses}
+      />
     </section>
   );
 }

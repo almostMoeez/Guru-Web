@@ -56,6 +56,9 @@ export const mapMenuItem = (
   categoryName: string,
 ): MenuItem => {
   const options = mapOptions(item);
+  const tags = (item.tags ?? [])
+    .map((t) => t.name?.toLowerCase().trim())
+    .filter((n): n is string => Boolean(n));
   return {
     id: String(item.id),
     name: item.name,
@@ -66,7 +69,33 @@ export const mapMenuItem = (
     image: resolveImage(item),
     customizable: Boolean(options),
     customizationOptions: options,
+    tags: tags.length ? tags : undefined,
   };
+};
+
+// Tag names that mark an item as a "signature"/featured pick.
+const SIGNATURE_TAGS = [
+  'signature',
+  'featured',
+  'popular',
+  'bestseller',
+  'best seller',
+  "chef's pick",
+  'chef pick',
+  'special',
+];
+
+/**
+ * Pick items to showcase on the home page. Prefers tagged signature/featured
+ * items; falls back to the first available items so the section is never empty.
+ */
+export const selectSignatureItems = (
+  groups: MenuCategoryGroup[],
+  count = 4,
+): MenuItem[] => {
+  const all = groups.flatMap((g) => g.subcategories.flatMap((s) => s.items));
+  const tagged = all.filter((i) => i.tags?.some((t) => SIGNATURE_TAGS.includes(t)));
+  return (tagged.length ? tagged : all).slice(0, count);
 };
 
 /**

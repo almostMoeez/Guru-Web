@@ -31,6 +31,8 @@ export interface MenuItem {
   calories?: number;
   customizable?: boolean;
   customizationOptions?: CustomizationOption[];
+  // Lowercased backend tag names (e.g. "signature", "popular").
+  tags?: string[];
 }
 
 export interface MenuCategory {

@@ -38,6 +38,12 @@ export interface ApiMenuItem {
   isVeg: boolean | null;
   spicyLevel: number | null;
   modifiers?: ApiMenuItemModifier[];
+  tags?: ApiMenuTag[];
+}
+
+export interface ApiMenuTag {
+  id: string;
+  name: string;
 }
 
 // A subcategory (backend `categories` row) with its items.

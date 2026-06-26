@@ -15,6 +15,7 @@ import {
 import heroDishImage from '../assets/images/guru_hero_dish_1780074619455.png';
 import { formatPKR } from '../lib/currency';
 import { BRANCHES } from '../lib/config';
+import type { MenuItem } from '../types';
 
 // Images cycled in the hero showcase slider.
 const HERO_IMAGES = [
@@ -31,6 +32,7 @@ interface HomePageProps {
   onViewStory: () => void;
   onChooseBranch: () => void;
   branchName: string | null;
+  signatureItems: MenuItem[];
 }
 
 // Shared scroll-reveal animation.
@@ -40,35 +42,6 @@ const reveal = {
   viewport: { once: true, margin: '-80px' },
   transition: { duration: 0.6, ease: 'easeOut' as const },
 };
-
-const SIGNATURE_DISHES = [
-  {
-    name: 'Truffle Tenderloin',
-    desc: 'Flame-kissed prime cut, bone-marrow butter, flaked sea salt.',
-    price: 2250,
-    tag: "Chef's Pick",
-    img: 'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    name: 'Wild Mushroom Risotto',
-    desc: 'Carnaroli rice, porcini broth, shaved pecorino, truffle oil.',
-    price: 1450,
-    img: 'https://images.unsplash.com/photo-1476124369491-e7addf5db371?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    name: 'Saffron Atlantic Salmon',
-    desc: 'Crisp-skin filet, charred asparagus, saffron velouté.',
-    price: 1950,
-    img: 'https://images.unsplash.com/photo-1485921325814-1541884f14e2?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    name: 'Gold Brew Mocha',
-    desc: 'Double-shot espresso, micro-foam, real gold-leaf garnish.',
-    price: 650,
-    tag: 'Signature',
-    img: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop',
-  },
-];
 
 const STATS = [
   { value: '4.9★', label: 'Avg Rating' },
@@ -92,6 +65,7 @@ export default function HomePage({
   onViewStory,
   onChooseBranch,
   branchName,
+  signatureItems,
 }: HomePageProps) {
   const [slide, setSlide] = useState(0);
 
@@ -151,20 +125,13 @@ export default function HomePage({
               </button>
               <motion.button
                 onClick={onFindUs}
-                animate={{ scale: 1.07 }}
-                transition={{ duration: 1.9, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+                animate={{ boxShadow: ['0 0 0px 0px rgba(230,126,34,0)', '0 0 22px 1px rgba(230,126,34,0.45)'] }}
+                transition={{ duration: 1.6, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+                whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                style={{ willChange: 'transform' }}
-                className="transform-gpu w-full sm:w-auto px-8 py-4 bg-transparent border border-white/20 hover:border-white hover:bg-white/5 text-white font-semibold text-xs tracking-[0.16em] rounded-full cursor-pointer uppercase"
+                className="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/20 hover:border-white hover:bg-white/5 text-white font-semibold text-xs tracking-[0.16em] rounded-full cursor-pointer uppercase"
               >
-                {/* Counter-scale so the label stays a fixed size while the button pulses */}
-                <motion.span
-                  className="inline-block"
-                  animate={{ scale: 1 / 1.07 }}
-                  transition={{ duration: 1.9, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
-                >
-                  Reserve a Table
-                </motion.span>
+                Reserve a Table
               </motion.button>
             </div>
 
@@ -281,44 +248,53 @@ export default function HomePage({
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {SIGNATURE_DISHES.map((dish, i) => (
-              <motion.div
-                key={dish.name}
-                initial={{ opacity: 0, y: 28 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-60px' }}
-                transition={{ duration: 0.5, ease: 'easeOut', delay: i * 0.08 }}
-                className="group bg-[#242424] border border-white/5 hover:border-primary-peach/20 rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
-              >
-                <div className="relative h-52 overflow-hidden bg-zinc-950">
-                  <img
-                    src={dish.img}
-                    alt={dish.name}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#242424] via-transparent to-transparent" />
-                  {dish.tag && (
-                    <span className="absolute top-3 left-3 bg-primary-peach text-black text-[9px] font-bold tracking-[0.12em] uppercase px-2.5 py-1 rounded-full">
-                      {dish.tag}
-                    </span>
-                  )}
-                </div>
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-3 mb-1.5">
-                    <h3 className="text-base font-bold text-white group-hover:text-primary-peach transition-colors leading-tight">
-                      {dish.name}
-                    </h3>
-                    <span className="text-sm font-semibold text-primary-peach font-mono whitespace-nowrap">
-                      {formatPKR(dish.price)}
-                    </span>
+          {signatureItems.length === 0 ? (
+            <p className="text-zinc-500 text-sm font-light">Our favourites are loading…</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {signatureItems.map((dish, i) => (
+                <motion.button
+                  key={dish.id}
+                  onClick={onExploreMenu}
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.5, ease: 'easeOut', delay: i * 0.08 }}
+                  className="group text-left bg-[#242424] border border-white/5 hover:border-primary-peach/20 rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
+                >
+                  <div className="relative h-52 overflow-hidden bg-zinc-950">
+                    <img
+                      src={dish.image}
+                      alt={dish.name}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#242424] via-transparent to-transparent" />
+                    {dish.tags?.[0] && (
+                      <span className="absolute top-3 left-3 bg-primary-peach text-black text-[9px] font-bold tracking-[0.12em] uppercase px-2.5 py-1 rounded-full">
+                        {dish.tags[0]}
+                      </span>
+                    )}
                   </div>
-                  <p className="text-zinc-500 text-xs font-light leading-relaxed">{dish.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                  <div className="p-5">
+                    <div className="flex items-start justify-between gap-3 mb-1.5">
+                      <h3 className="text-base font-bold text-white group-hover:text-primary-peach transition-colors leading-tight">
+                        {dish.name}
+                      </h3>
+                      <span className="text-sm font-semibold text-primary-peach font-mono whitespace-nowrap">
+                        {formatPKR(dish.price)}
+                      </span>
+                    </div>
+                    {dish.description && (
+                      <p className="text-zinc-500 text-xs font-light leading-relaxed line-clamp-2">
+                        {dish.description}
+                      </p>
+                    )}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          )}
 
           <motion.div {...reveal} className="mt-12 text-center">
             <button

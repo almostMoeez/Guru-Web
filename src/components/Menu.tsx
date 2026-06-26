@@ -268,20 +268,20 @@ export default function Menu({
           {/* Current branch indicator */}
           <button
             onClick={onChangeBranch}
-            className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-950 border border-white/5 hover:border-primary-peach/30 transition-all cursor-pointer group"
+            className="mt-6 inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-zinc-950 border border-white/5 hover:border-primary-peach/30 transition-all cursor-pointer group"
           >
-            <Building2 className="w-4 h-4 text-primary-peach shrink-0" />
-            <span className="text-xs text-zinc-300">
+            <Building2 className="w-6 h-6 text-primary-peach shrink-0" />
+            <span className="text-base text-zinc-300">
               {branchName ? (
                 <>
                   Ordering from{' '}
-                  <span className="text-white font-semibold">{branchName}</span>
+                  <span className="text-white font-bold">{branchName}</span>
                 </>
               ) : (
                 'Select a branch'
               )}
             </span>
-            <span className="text-primary-peach text-[10px] font-semibold uppercase tracking-wider ml-1 group-hover:text-primary-peach-light">
+            <span className="text-primary-peach text-xs font-bold uppercase tracking-wider ml-2 group-hover:text-primary-peach-light">
               Change
             </span>
           </button>
@@ -307,7 +307,7 @@ export default function Menu({
                         tabRefs.current[group.id] = el;
                       }}
                       onClick={() => handleTabClick(group.id)}
-                      className={`shrink-0 my-2.5 px-5 py-2 rounded-full text-[11px] font-semibold tracking-[0.12em] uppercase whitespace-nowrap transition-all focus:outline-none cursor-pointer ${
+                      className={`shrink-0 my-2.5 px-6 py-2.5 rounded-full text-sm font-semibold tracking-[0.1em] uppercase whitespace-nowrap transition-all focus:outline-none cursor-pointer ${
                         active
                           ? 'bg-primary-peach text-black shadow-lg shadow-primary-peach/10'
                           : 'text-zinc-400 hover:text-white hover:bg-white/5'
@@ -402,7 +402,7 @@ export default function Menu({
                         <button
                           key={sub.id}
                           onClick={() => handleSubcatClick(group.id, sub.id)}
-                          className="px-4 py-1.5 rounded-full text-[10px] font-semibold tracking-[0.1em] uppercase bg-zinc-950 border border-white/5 text-zinc-300 hover:text-primary-peach hover:border-primary-peach/40 transition-all cursor-pointer"
+                          className="px-5 py-2 rounded-full text-xs font-semibold tracking-[0.08em] uppercase bg-zinc-950 border border-white/5 text-zinc-300 hover:text-primary-peach hover:border-primary-peach/40 transition-all cursor-pointer"
                         >
                           {sub.name}
                         </button>

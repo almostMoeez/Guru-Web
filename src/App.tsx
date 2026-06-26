@@ -21,6 +21,7 @@ import { useAuth } from './lib/auth/AuthContext';
 import { useBranch } from './lib/branch/BranchContext';
 import { createOrder } from './lib/api/orders';
 import { updateProfile, createAddress } from './lib/api/users';
+import { selectSignatureItems } from './lib/mappers';
 import { DEFAULT_BRANCH_ID } from './lib/config';
 import type { CreateOrderItem, CreateOrderPayload, OrderType } from './lib/api/types';
 import logoImg from './assets/images/logo.png';
@@ -107,6 +108,12 @@ export default function App() {
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
+
+  // Featured items shown on the home page (from the live menu).
+  const signatureItems = useMemo(
+    () => selectSignatureItems(menuGroups, 4),
+    [menuGroups],
+  );
 
   // Menu item id -> name, used to label order-history line items.
   const itemNameById = useMemo(() => {
@@ -274,10 +281,10 @@ export default function App() {
       }
     }
 
-    // 2. Resolve the delivery address id: either an existing one or a new one
-    //    we save now (so it's available next time).
-    let deliveryAddressId = info.selectedAddressId ?? undefined;
-    if (!deliveryAddressId && info.newAddress) {
+    // 2. Resolve the delivery address id. A newly entered address always wins —
+    //    save it and use it — so we never fall back to a stale selected id.
+    let deliveryAddressId: string | undefined;
+    if (info.newAddress) {
       const created = await createAddress({
         ...info.newAddress,
         // Make the first saved address the default.
@@ -285,6 +292,8 @@ export default function App() {
       });
       deliveryAddressId = created.id;
       reloadAddresses();
+    } else if (info.selectedAddressId) {
+      deliveryAddressId = info.selectedAddressId;
     }
 
     // 3. Build and place the order.
@@ -353,6 +362,7 @@ export default function App() {
                   onViewStory={() => handleNavigate('story')}
                   onChooseBranch={() => setIsBranchOpen(true)}
                   branchName={branch?.name ?? null}
+                  signatureItems={signatureItems}
                 />
               )}
 

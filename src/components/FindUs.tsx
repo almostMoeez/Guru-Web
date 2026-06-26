@@ -255,20 +255,13 @@ export default function FindUs() {
                   <div className="pt-4">
                     <motion.button
                       type="submit"
-                      animate={{ scale: 1.05 }}
-                      transition={{ duration: 1.9, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+                      animate={{ boxShadow: ['0 0 0px 0px rgba(230,126,34,0)', '0 0 30px 3px rgba(230,126,34,0.55)'] }}
+                      transition={{ duration: 1.6, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+                      whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      style={{ willChange: 'transform' }}
-                      className="transform-gpu w-full py-4.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-extrabold text-sm tracking-widest rounded-2xl hover:shadow-lg hover:shadow-primary-peach/10 cursor-pointer uppercase"
+                      className="w-full py-4.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-extrabold text-sm tracking-widest rounded-2xl cursor-pointer uppercase"
                     >
-                      {/* Counter-scale so the label stays a fixed size while the button pulses */}
-                      <motion.span
-                        className="inline-block"
-                        animate={{ scale: 1 / 1.05 }}
-                        transition={{ duration: 1.9, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
-                      >
-                        RESERVE TABLE
-                      </motion.span>
+                      RESERVE TABLE
                     </motion.button>
                   </div>
                 </motion.form>

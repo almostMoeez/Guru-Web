@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, Plus, Minus, Flame, Check, X, ShoppingBag, Lock, AlertCircle, MapPin, PlusCircle, Bike, Store, Wallet, CreditCard, Pencil } from 'lucide-react';
+import { Trash2, Plus, Minus, Flame, Check, X, ShoppingBag, Lock, AlertCircle, MapPin, PlusCircle, Bike, Store, Wallet, CreditCard, Pencil, LocateFixed, Loader2 } from 'lucide-react';
 import { CartItem } from '../types';
 import { formatPKR } from '../lib/currency';
 import { TAX_RATES } from '../lib/config';
+import { getCurrentCoords, type GeoAddress } from '../lib/geocode';
+import LocationPicker from './LocationPicker';
 import type { ApiOrder, ApiUserAddress, OrderType, PaymentMethod } from '../lib/api/types';
 
 export interface NewAddressInput {
@@ -91,9 +93,38 @@ export default function CartOverlay({
 
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
 
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [orderError, setOrderError] = useState<string | null>(null);
   const [placedOrder, setPlacedOrder] = useState<ApiOrder | null>(null);
+  // Snapshot of the details used for the placed order, so the confirmation
+  // screen doesn't change when address state resets after the order is saved.
+  const [placedInfo, setPlacedInfo] = useState<CheckoutInfo | null>(null);
+  const [placedIsPickup, setPlacedIsPickup] = useState(false);
+
+  // Fill the address fields from a resolved map/geolocation address.
+  const applyGeo = (geo: GeoAddress) => {
+    if (geo.addressLine1) setAddressLine1(geo.addressLine1);
+    if (geo.landmark) setLandmark(geo.landmark);
+    if (geo.city) setCity(geo.city);
+    if (geo.postalCode) setPostalCode(geo.postalCode);
+  };
+
+  const useMyLocation = async () => {
+    setLocating(true);
+    setLocationError(null);
+    try {
+      // Recenter the map on the device location; the picker fills the fields.
+      setMapCenter(await getCurrentCoords());
+    } catch (err) {
+      setLocationError(err instanceof Error ? err.message : 'Could not detect your location.');
+    } finally {
+      setLocating(false);
+    }
+  };
 
   const isPickup = orderType === 'takeaway';
 
@@ -202,7 +233,13 @@ export default function CartOverlay({
     if (!validateForm()) return;
 
     // For pickup orders we don't collect/save a delivery address.
-    const usingSaved = !isPickup && addressMode === 'saved';
+    // "Saved" only counts when a saved address actually exists and is selected —
+    // otherwise the (visible) new-address form is what we submit.
+    const usingSaved =
+      !isPickup &&
+      addressMode === 'saved' &&
+      savedAddresses.length > 0 &&
+      Boolean(selectedAddressId);
     const selected = usingSaved
       ? savedAddresses.find((a) => a.id === selectedAddressId) ?? null
       : null;
@@ -241,6 +278,8 @@ export default function CartOverlay({
     setActiveBrewStep(0);
     try {
       const order = await onPlaceOrder(info);
+      setPlacedInfo(info);
+      setPlacedIsPickup(isPickup);
       setPlacedOrder(order);
       setCheckoutStep(3);
     } catch (err) {
@@ -259,6 +298,7 @@ export default function CartOverlay({
     setErrors({});
     setOrderError(null);
     setPlacedOrder(null);
+    setPlacedInfo(null);
     onClose();
   };
 
@@ -318,7 +358,7 @@ export default function CartOverlay({
                     <ShoppingBag className="w-5 h-5 text-primary-peach" />
                     Your Order
                   </h3>
-                  <p className="text-zinc-500 text-xs font-light">Review your order</p>
+                  <p className="text-zinc-500 text-sm font-light">Review your order</p>
                 </div>
                 <button
                   onClick={handleClose}
@@ -615,6 +655,27 @@ export default function CartOverlay({
                             </div>
                           ) : (
                             <div className="space-y-3">
+                              {/* Map picker */}
+                              <LocationPicker center={mapCenter} onPick={applyGeo} />
+                              <p className="text-zinc-600 text-[10px] font-light">
+                                Tap the map or drag the pin to set your exact location.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={useMyLocation}
+                                disabled={locating}
+                                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary-peach/10 border border-primary-peach/30 hover:bg-primary-peach/15 text-primary-peach text-[11px] font-semibold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-60"
+                              >
+                                {locating ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <LocateFixed className="w-3.5 h-3.5" />
+                                )}
+                                {locating ? 'Detecting…' : 'Use my current location'}
+                              </button>
+                              {locationError && (
+                                <p className="text-rose-400 text-[10px] font-medium">{locationError}</p>
+                              )}
                               <div className="space-y-1.5">
                                 <input
                                   type="text"
@@ -726,7 +787,7 @@ export default function CartOverlay({
                         <div className="p-4 rounded-2xl bg-zinc-950/85 border border-white/5 mt-6 space-y-3">
                           <div className="space-y-2">
                             {cartItems.map((item) => (
-                              <div key={item.cartId} className="flex justify-between gap-3 text-xs">
+                              <div key={item.cartId} className="flex justify-between gap-3 text-sm">
                                 <span className="text-zinc-300 min-w-0">
                                   <span className="text-primary-peach font-semibold">{item.quantity}×</span>{' '}
                                   {item.menuItem.name}
@@ -737,23 +798,30 @@ export default function CartOverlay({
                               </div>
                             ))}
                           </div>
-                          <div className="border-t border-white/5 pt-2.5 space-y-1.5">
-                            <div className="flex justify-between text-xs text-zinc-500 font-mono">
+                          <div className="border-t border-white/5 pt-2.5 space-y-2">
+                            <div className="flex justify-between text-sm text-zinc-400 font-mono">
                               <span>Subtotal</span>
                               <span className="text-white">{formatPKR(subtotal)}</span>
                             </div>
-                            <div className="flex justify-between text-xs text-zinc-500 font-mono">
+                            <div className="flex justify-between text-sm text-zinc-400 font-mono">
                               <span>Tax ({Math.round(taxRate * 100)}%)</span>
                               <span className="text-white">{formatPKR(tax)}</span>
                             </div>
-                            <div className="border-t border-white/5 pt-2 flex justify-between text-xs text-white uppercase font-bold">
+                            <div className="border-t border-white/5 pt-2 flex justify-between text-base text-white uppercase font-bold">
                               <span>Total Due</span>
                               <span className="text-primary-peach font-mono">{formatPKR(total)}</span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="pt-4 flex gap-3">
+                        {/* Delivery charges note */}
+                        <p className="text-zinc-500 text-xs font-light text-center mt-4 leading-relaxed">
+                          {isPickup
+                            ? 'This total is exclusive of any applicable charges, confirmed at the branch.'
+                            : 'This total is exclusive of delivery charges, which are confirmed by the rider on arrival.'}
+                        </p>
+
+                        <div className="pt-3 flex gap-3">
                           <button
                             type="button"
                             onClick={() => setCheckoutStep(0)}
@@ -855,7 +923,7 @@ export default function CartOverlay({
 
                       <h4 className="text-white text-lg font-bold mb-2">Order Confirmed!</h4>
                       <p className="text-zinc-400 text-xs font-light max-w-xs leading-relaxed mb-6">
-                        {isPickup
+                        {placedIsPickup
                           ? `Your order will be ready for pickup at our ${branchName ?? 'nearest'} branch.`
                           : `Your order will be prepared and delivered from our ${branchName ?? 'nearest'} branch.`}
                       </p>
@@ -874,28 +942,40 @@ export default function CartOverlay({
                         </div>
                         <div className="flex justify-between">
                           <span>Type:</span>
-                          <span className="text-white font-semibold">{isPickup ? 'Pickup' : 'Delivery'}</span>
+                          <span className="text-white font-semibold">{placedIsPickup ? 'Pickup' : 'Delivery'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Payment:</span>
-                          <span className="text-white font-semibold uppercase">{paymentMethod}</span>
+                          <span className="text-white font-semibold uppercase">{placedInfo?.paymentMethod ?? paymentMethod}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Recipient Name:</span>
-                          <span className="text-white font-semibold truncate max-w-[150px]">{recipientName}</span>
+                          <span className="text-white font-semibold truncate max-w-[150px]">
+                            {[placedInfo?.firstName, placedInfo?.lastName].filter(Boolean).join(' ') || recipientName}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span>Contact Phone:</span>
-                          <span className="text-white font-semibold">{phone}</span>
+                          <span className="text-white font-semibold">{placedInfo?.phone ?? phone}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>{isPickup ? 'Pickup At:' : 'Destination:'}</span>
-                          <span className="text-white font-semibold truncate max-w-[155px]" title={confirmedAddressText}>{confirmedAddressText}</span>
+                          <span>{placedIsPickup ? 'Pickup At:' : 'Destination:'}</span>
+                          <span
+                            className="text-white font-semibold truncate max-w-[155px]"
+                            title={placedInfo?.deliveryAddressText ?? confirmedAddressText}
+                          >
+                            {placedInfo?.deliveryAddressText ?? confirmedAddressText}
+                          </span>
                         </div>
-                        {riderNote.trim() && (
+                        {(placedInfo?.riderNote ?? riderNote).trim() && (
                           <div className="flex justify-between">
                             <span>Special Request:</span>
-                            <span className="text-white font-semibold truncate max-w-[155px]" title={riderNote}>{riderNote}</span>
+                            <span
+                              className="text-white font-semibold truncate max-w-[155px]"
+                              title={placedInfo?.riderNote ?? riderNote}
+                            >
+                              {placedInfo?.riderNote ?? riderNote}
+                            </span>
                           </div>
                         )}
                         <div className="h-px bg-white/5 my-1" />
@@ -924,11 +1004,11 @@ export default function CartOverlay({
               {cartItems.length > 0 && checkoutStep === 0 && (
                 <div className="px-6 py-6 border-t border-white/5 bg-[#141414] space-y-4 shrink-0">
                   <div className="space-y-2 text-sm font-medium">
-                    <div className="flex justify-between text-white font-bold text-base">
+                    <div className="flex justify-between text-white font-bold text-lg">
                       <span>Subtotal ({itemCount})</span>
                       <span className="text-primary-peach font-mono">{formatPKR(subtotal)}</span>
                     </div>
-                    <p className="text-zinc-600 text-[10px] font-light">
+                    <p className="text-zinc-500 text-xs font-light">
                       Taxes and total are calculated at checkout based on your payment method.
                     </p>
                   </div>
