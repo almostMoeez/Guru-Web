@@ -45,11 +45,11 @@ export default function FindUs() {
   };
 
   return (
-    <section id="find-us-section" className="py-24 bg-[#1c1c1c] relative border-t border-white/5">
+    <section id="find-us-section" className="py-14 md:py-24 bg-[#1c1c1c] relative border-t border-white/5">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-peach/3 rounded-full blur-[150px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div id="section-header" className="text-center max-w-2xl mx-auto mb-16">
+        <div id="section-header" className="text-center max-w-2xl mx-auto mb-10 md:mb-16">
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-primary-peach mb-3">
             Visit Us
           </h2>
@@ -62,7 +62,7 @@ export default function FindUs() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Card left: Info & map placeholder */}
           <div className="lg:col-span-5 space-y-8 flex flex-col justify-between">
             <div className="space-y-6">
@@ -127,7 +127,7 @@ export default function FindUs() {
           </div>
 
           {/* Card right: Form */}
-          <div className="lg:col-span-7 bg-[#242424] border border-white/5 rounded-3xl p-8 relative overflow-hidden">
+          <div className="lg:col-span-7 bg-[#242424] border border-white/5 rounded-3xl p-5 sm:p-8 relative overflow-hidden">
             <AnimatePresence mode="wait">
               {bookingSuccess ? (
                 <motion.div

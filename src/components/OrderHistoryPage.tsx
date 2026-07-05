@@ -135,7 +135,7 @@ export default function OrderHistoryPage({
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: Math.min(idx * 0.05, 0.3) }}
-                  className="bg-[#242424] border border-white/5 rounded-3xl p-6"
+                  className="bg-[#242424] border border-white/5 rounded-3xl p-4 sm:p-6"
                 >
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>

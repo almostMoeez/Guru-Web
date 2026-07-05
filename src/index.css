@@ -9,7 +9,10 @@
   --color-primary-peach-light: #ea8c43;
 }
 
-/* Bump the root size so all rem-based text/spacing scales up uniformly. */
+/* Bump the root size so all rem-based text/spacing scales up uniformly.
+   NOTE: don't set overflow on <html> — any non-visible value here stops
+   `body { overflow: hidden }` (the drawer/cart scroll locks) from propagating
+   to the viewport. Horizontal decorative overflow is clipped on #guru-app. */
 html {
   font-size: 108.5%;
 }

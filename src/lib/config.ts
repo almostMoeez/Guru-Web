@@ -23,6 +23,10 @@ export const AUTH_TOKEN_KEY = 'guru.auth.token';
 // localStorage key for the user's selected branch.
 export const BRANCH_STORAGE_KEY = 'guru.branch.id';
 
+// localStorage key for guest checkout details (name/phone/address), so a
+// returning guest doesn't have to retype them on the next order.
+export const GUEST_INFO_KEY = 'guru.guest.info';
+
 // WhatsApp contact number (international format, digits only) for the floating
 // chat button. Override with VITE_WHATSAPP_NUMBER.
 export const WHATSAPP_NUMBER: string =
@@ -32,7 +36,7 @@ export const WHATSAPP_NUMBER: string =
 // higher on cash). The backend doesn't compute tax, so this is a UI estimate.
 export const TAX_RATES: Record<'cash' | 'card', number> = {
   cash: 0.16,
-  card: 0.05,
+  card: 0.08,
 };
 
 export interface BranchOption {

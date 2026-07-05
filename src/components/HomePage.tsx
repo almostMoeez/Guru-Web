@@ -97,12 +97,12 @@ export default function HomePage({
             transition={{ duration: 0.8, ease: 'easeOut' }}
             className="text-center lg:text-left"
           >
-            <span className="inline-flex items-center gap-2 text-[11px] font-mono tracking-[0.25em] uppercase text-primary-peach mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary-peach animate-pulse" />
+            <span className="inline-flex items-center gap-3 text-3xl sm:text-4xl md:text-5xl font-bold text-primary-peach tracking-tight leading-tight mb-6">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary-peach animate-pulse" />
               Guru · Lahore
             </span>
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[0.95]">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-white leading-[0.95]">
               Where every
               <span className="block mt-2 bg-gradient-to-r from-primary-peach via-primary-peach-light to-primary-peach text-transparent bg-clip-text">
                 bite tells a story
@@ -136,7 +136,7 @@ export default function HomePage({
             </div>
 
             {/* Stats */}
-            <div className="mt-12 grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
+            <div className="mt-10 md:mt-12 grid grid-cols-3 gap-3 sm:gap-6 max-w-md mx-auto lg:mx-0">
               {STATS.slice(0, 3).map((s) => (
                 <div key={s.label} className="text-center lg:text-left">
                   <div className="text-2xl md:text-3xl font-bold text-white">{s.value}</div>
@@ -232,7 +232,7 @@ export default function HomePage({
       </section>
 
       {/* ──────────────────── SIGNATURE DISHES ──────────────────── */}
-      <section className="py-24 md:py-28 relative">
+      <section className="py-14 md:py-28 relative">
         <div className="absolute top-1/4 right-0 w-96 h-96 bg-primary-peach/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <motion.div {...reveal} className="max-w-2xl mb-14">
@@ -309,7 +309,7 @@ export default function HomePage({
       </section>
 
       {/* ──────────────────── EXPERIENCE BENTO ──────────────────── */}
-      <section className="py-24 bg-[#161616] border-y border-white/5">
+      <section className="py-14 md:py-24 bg-[#161616] border-y border-white/5">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div {...reveal} className="text-center max-w-2xl mx-auto mb-14">
             <h2 className="text-4xl md:text-5xl font-bold text-primary-peach tracking-tight">
@@ -345,8 +345,8 @@ export default function HomePage({
       </section>
 
       {/* ──────────────────── STORY TEASER ──────────────────── */}
-      <section className="py-24 md:py-28">
-        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-14 items-center">
+      <section className="py-14 md:py-28">
+        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -363,7 +363,7 @@ export default function HomePage({
               />
             </div>
             {/* Quote chip */}
-            <div className="absolute -bottom-6 -right-2 sm:right-6 bg-[#242424] border border-white/10 rounded-2xl p-5 max-w-xs shadow-2xl">
+            <div className="absolute -bottom-6 right-2 sm:right-6 bg-[#242424] border border-white/10 rounded-2xl p-4 sm:p-5 max-w-[85%] sm:max-w-xs shadow-2xl">
               <Quote className="w-5 h-5 text-primary-peach mb-2" />
               <p className="text-zinc-300 text-xs font-light leading-relaxed italic">
                 “The kind of place you come for the coffee and stay for the whole evening.”
@@ -401,7 +401,7 @@ export default function HomePage({
       </section>
 
       {/* ──────────────────── BRANCHES ──────────────────── */}
-      <section className="py-24 bg-[#161616] border-y border-white/5">
+      <section className="py-14 md:py-24 bg-[#161616] border-y border-white/5">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div {...reveal} className="text-center max-w-2xl mx-auto mb-14">
             <h2 className="text-4xl md:text-5xl font-bold text-primary-peach tracking-tight">
@@ -458,7 +458,7 @@ export default function HomePage({
       </section>
 
       {/* ──────────────────── FINAL CTA ──────────────────── */}
-      <section className="py-24 md:py-32 relative overflow-hidden">
+      <section className="py-14 md:py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(230,126,34,0.12),transparent_60%)]" />
         <motion.div {...reveal} className="relative z-10 max-w-3xl mx-auto px-6 text-center">
           <Flame className="w-10 h-10 text-primary-peach mx-auto mb-6" />

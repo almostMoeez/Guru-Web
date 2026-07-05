@@ -6,7 +6,7 @@ export default function OurStory() {
     <div className="bg-[#1c1c1c] min-h-screen text-zinc-100 font-sans selection:bg-primary-peach selection:text-black">
       
       {/* 1. HERO BANNER: BREWED TO PERFECTION */}
-      <section className="relative h-[65vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[65vh] py-20 flex items-center justify-center overflow-hidden">
         {/* Extreme close-up crema/pour background */}
         <div className="absolute inset-0 z-0">
           <img
@@ -47,8 +47,8 @@ export default function OurStory() {
       </section>
 
       {/* 2. HERITAGE COLUMN: A LEGACY OF ARTISANAL EXCELLENCE */}
-      <section className="py-24 max-w-7xl mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+      <section className="py-14 md:py-24 max-w-7xl mx-auto px-6 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           
           {/* Single clean brand image constraint */}
           <div className="lg:col-span-5 relative flex justify-center">
@@ -107,8 +107,8 @@ export default function OurStory() {
       </section>
 
       {/* 3. BENTO PHILOSOPHY GRID: THE ART OF BREWING */}
-      <section className="py-24 bg-[#141414] border-t border-white/5 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 space-y-14">
+      <section className="py-14 md:py-24 bg-[#141414] border-t border-white/5 relative z-10">
+        <div className="max-w-7xl mx-auto px-6 space-y-10 md:space-y-14">
           
           {/* Header centered */}
           <div className="text-center max-w-lg mx-auto space-y-2">
@@ -124,7 +124,7 @@ export default function OurStory() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             
             {/* CARD 1: PRECISION WATER */}
-            <div className="md:col-span-4 bg-[#242424] border border-white/5 rounded-2xl p-8 hover:border-primary-peach/15 transition-all duration-300 flex flex-col justify-between">
+            <div className="md:col-span-4 bg-[#242424] border border-white/5 rounded-2xl p-6 sm:p-8 hover:border-primary-peach/15 transition-all duration-300 flex flex-col justify-between">
               <div className="flex flex-col gap-6">
                 <div className="w-10 h-10 rounded-full bg-zinc-950 border border-white/5 flex items-center justify-center text-primary-peach">
                   <Droplet className="w-5 h-5 shrink-0" />
@@ -175,7 +175,7 @@ export default function OurStory() {
             </div>
 
             {/* CARD 4: THERMAL STABILITY */}
-            <div className="md:col-span-4 bg-[#242424] border border-white/5 rounded-2xl p-8 hover:border-primary-peach/15 transition-all duration-300 flex flex-col justify-between">
+            <div className="md:col-span-4 bg-[#242424] border border-white/5 rounded-2xl p-6 sm:p-8 hover:border-primary-peach/15 transition-all duration-300 flex flex-col justify-between">
               <div className="flex flex-col gap-6">
                 <div className="w-10 h-10 rounded-full bg-zinc-950 border border-white/5 flex items-center justify-center text-primary-peach">
                   <Thermometer className="w-5 h-5 shrink-0" />

@@ -31,6 +31,18 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Lock page scroll while the mobile drawer is open (same pattern as CartOverlay).
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [mobileMenuOpen]);
+
   const menuItems = [
     { id: 'home', label: 'HOME' },
     { id: 'menu', label: 'MENU' },
@@ -46,10 +58,8 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
   return (
     <header
       id="app-header"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
-        isScrolled
-          ? 'bg-[#1c1c1c]/90 backdrop-blur-md border-white/5 py-3 shadow-lg'
-          : 'bg-transparent border-transparent py-6'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b bg-[#1c1c1c]/90 backdrop-blur-md border-white/5 ${
+        isScrolled ? 'py-3 shadow-lg' : 'py-4 md:py-6'
       }`}
     >
       <div className="w-full px-6 md:px-10 grid grid-cols-[1fr_auto_1fr] items-center">
@@ -59,11 +69,14 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
           onClick={() => handleLinkClick('home')}
           className="flex items-center cursor-pointer justify-self-start"
         >
-          <img src={logoImg} alt="Guru Logo" className="h-12 w-auto object-contain" />
+          <img src={logoImg} alt="Guru Logo" className="h-9 md:h-12 w-auto object-contain" />
         </div>
 
         {/* Desktop Navigation */}
-        <nav id="desktop-nav" className="hidden md:flex items-center gap-10 justify-self-center">
+        {/* col-start keeps items in their columns even when the nav is display:none
+            (a hidden grid item is skipped, which used to shift the actions into
+            the middle column on mobile/tablet). */}
+        <nav id="desktop-nav" className="hidden lg:flex items-center gap-10 justify-self-center col-start-2">
           {menuItems.map((item) => (
             <button
               key={item.id}
@@ -81,12 +94,12 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
         </nav>
 
         {/* Actions */}
-        <div id="header-actions" className="flex items-center gap-4 justify-self-end">
+        <div id="header-actions" className="flex items-center gap-2 md:gap-4 justify-self-end col-start-3">
           {/* Branch selector */}
           <button
             id="branch-trigger-btn"
             onClick={onBranchClick}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/5 hover:border-primary-peach/30 text-zinc-300 hover:text-white text-xs font-medium transition-all max-w-[170px] cursor-pointer"
+            className="hidden lg:inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/5 hover:border-primary-peach/30 text-zinc-300 hover:text-white text-xs font-medium transition-all max-w-[170px] cursor-pointer"
             title={branchName ? `Branch: ${branchName} — tap to change` : 'Select a branch'}
           >
             <Building2 className="w-3.5 h-3.5 text-primary-peach shrink-0" />
@@ -109,14 +122,14 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
 
           {/* Account / Auth */}
           {isAuthenticated ? (
-            <div className="hidden sm:block">
+            <div className="hidden lg:block">
               <ProfileMenu onNavigate={onNavigate} />
             </div>
           ) : (
             <button
               id="sign-in-btn"
               onClick={onAuthClick}
-              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white/5 border border-white/5 hover:border-primary-peach/30 text-zinc-300 hover:text-white font-semibold text-xs tracking-wider transition-all uppercase duration-300 cursor-pointer"
+              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white/5 border border-white/5 hover:border-primary-peach/30 text-zinc-300 hover:text-white font-semibold text-xs tracking-wider transition-all uppercase duration-300 cursor-pointer"
             >
               <User className="w-3.5 h-3.5" />
               Sign In
@@ -127,7 +140,7 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
           <button
             id="mobile-menu-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-zinc-300 hover:text-white focus:outline-none"
+            className="lg:hidden p-2 text-zinc-300 hover:text-white focus:outline-none"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
           </button>
@@ -136,7 +149,10 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div id="mobile-menu" className="md:hidden fixed inset-0 top-[60px] bg-[#1c1c1c] z-40 border-t border-white/5 flex flex-col px-8 py-12 gap-8">
+        <div
+          id="mobile-menu"
+          className="lg:hidden absolute top-full inset-x-0 h-[calc(100dvh-100%)] bg-[#1c1c1c] z-40 border-t border-white/5 flex flex-col px-8 py-8 gap-5 overflow-y-auto"
+        >
           {menuItems.map((item) => (
             <button
               key={item.id}

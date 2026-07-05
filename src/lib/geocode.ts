@@ -1,6 +1,8 @@
-// Lightweight geolocation + reverse-geocoding so users can fill an address
-// from their current location. Uses the browser Geolocation API and the free
-// OpenStreetMap Nominatim service (no API key required).
+// Geolocation + reverse-geocoding so users can fill an address from a map pin
+// or their current location. Uses the browser Geolocation API and the Google
+// Geocoding service (via the Maps JavaScript API).
+
+import { loadGoogleMaps } from './googleMaps';
 
 export interface GeoAddress {
   addressLine1: string;
@@ -9,34 +11,49 @@ export interface GeoAddress {
   postalCode?: string;
 }
 
-interface NominatimAddress {
-  house_number?: string;
-  road?: string;
-  neighbourhood?: string;
-  suburb?: string;
-  quarter?: string;
-  city?: string;
-  town?: string;
-  village?: string;
-  county?: string;
-  postcode?: string;
+/** First matching address component across the geocoder results, in order. */
+function findComponent(
+  results: google.maps.GeocoderResult[],
+  type: string,
+): string | undefined {
+  for (const result of results) {
+    const match = result.address_components.find((c) => c.types.includes(type));
+    if (match) return match.long_name;
+  }
+  return undefined;
 }
 
 /** Reverse-geocode coordinates into a structured address. */
 export async function reverseGeocode(lat: number, lon: number): Promise<GeoAddress> {
-  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1`;
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
-  if (!res.ok) throw new Error('Could not look up your address. Please enter it manually.');
+  const maps = await loadGoogleMaps();
+  const geocoder = new maps.Geocoder();
 
-  const data = (await res.json()) as { address?: NominatimAddress; display_name?: string };
-  const a = data.address ?? {};
-  const line1 = [a.house_number, a.road].filter(Boolean).join(' ');
+  let results: google.maps.GeocoderResult[];
+  try {
+    ({ results } = await geocoder.geocode({ location: { lat, lng: lon } }));
+  } catch {
+    throw new Error('Could not look up your address. Please enter it manually.');
+  }
+  if (!results.length) {
+    throw new Error('Could not look up your address. Please enter it manually.');
+  }
+
+  // Lahore results often carry the house number as `premise` instead of
+  // `street_number`, and the block as `neighborhood` / `sublocality_level_2`.
+  const houseNumber =
+    findComponent(results, 'street_number') ?? findComponent(results, 'premise');
+  const route = findComponent(results, 'route');
+  const block =
+    findComponent(results, 'neighborhood') ?? findComponent(results, 'sublocality_level_2');
+  const area = findComponent(results, 'sublocality_level_1');
+  const line1 = [houseNumber, route ?? block].filter(Boolean).join(' ');
+  const landmark = [block, area].filter((v, i, arr) => v && arr.indexOf(v) === i).join(', ');
 
   return {
-    addressLine1: line1 || a.neighbourhood || a.suburb || data.display_name?.split(',')[0] || '',
-    landmark: a.neighbourhood || a.suburb || a.quarter || undefined,
-    city: a.city || a.town || a.village || a.county || undefined,
-    postalCode: a.postcode || undefined,
+    addressLine1: line1 || area || results[0].formatted_address.split(',')[0] || '',
+    landmark: landmark || undefined,
+    city: findComponent(results, 'locality') ?? 'Lahore',
+    postalCode: findComponent(results, 'postal_code'),
   };
 }
 

@@ -98,7 +98,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-            className="relative w-full max-w-md bg-[#242424] border border-white/5 rounded-3xl overflow-hidden shadow-2xl text-zinc-100"
+            className="relative w-full max-w-md bg-[#242424] border border-white/5 rounded-3xl shadow-2xl text-zinc-100 max-h-[90vh] overflow-y-auto"
           >
             <button
               onClick={onClose}
@@ -108,7 +108,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               <X className="w-5 h-5" />
             </button>
 
-            <div className="p-8 md:p-10">
+            <div className="p-6 md:p-10">
               {/* Brand mark */}
               <div className="w-14 h-14 rounded-full bg-primary-peach/10 border border-primary-peach/20 flex items-center justify-center mb-6">
                 <Mail className="w-6 h-6 text-primary-peach" />

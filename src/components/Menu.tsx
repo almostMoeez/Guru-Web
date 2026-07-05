@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Plus, Minus, Trash2, Loader2, AlertCircle, RefreshCw, Building2 } from 'lucide-react';
+import { Plus, Minus, Trash2, Loader2, AlertCircle, RefreshCw, Building2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MenuItem, MenuCategoryGroup } from '../types';
 import { formatPKR } from '../lib/currency';
 import { FALLBACK_IMAGE } from '../lib/mappers';
@@ -40,6 +40,8 @@ export default function Menu({
   onChangeBranch,
 }: MenuProps) {
   const [activeGroup, setActiveGroup] = useState<string>('');
+  // Which directions the category tab bar can still scroll (drives the arrows).
+  const [tabOverflow, setTabOverflow] = useState({ left: false, right: false });
 
   const groupRefs = useRef<Record<string, HTMLElement | null>>({});
   const subcatRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -48,6 +50,29 @@ export default function Menu({
   // Set while a click-to-scroll is animating, so the scroll-spy doesn't fight it.
   const isClickScrolling = useRef(false);
   const scrollRaf = useRef<number>(0);
+
+  // Track whether the tab bar overflows left/right, to show scroll arrows.
+  useEffect(() => {
+    const bar = tabBarRef.current;
+    if (!bar) return;
+    const update = () => {
+      const max = bar.scrollWidth - bar.clientWidth;
+      setTabOverflow({ left: bar.scrollLeft > 2, right: bar.scrollLeft < max - 2 });
+    };
+    update();
+    bar.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      bar.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [groups]);
+
+  const scrollTabs = (dir: -1 | 1) => {
+    const bar = tabBarRef.current;
+    if (!bar) return;
+    bar.scrollBy({ left: dir * bar.clientWidth * 0.7, behavior: 'smooth' });
+  };
 
   // Default to (or keep a valid) active group as data loads.
   useEffect(() => {
@@ -151,7 +176,7 @@ export default function Menu({
         className="bg-[#242424] border border-white/5 hover:border-primary-peach/15 rounded-3xl flex flex-col justify-between transition-all duration-300 group hover:shadow-2xl relative overflow-hidden"
       >
         <div>
-          <div className="w-full h-60 bg-zinc-950 relative overflow-hidden">
+          <div className="w-full h-36 sm:h-44 lg:h-52 bg-zinc-950 relative overflow-hidden">
             <img
               src={item.image}
               alt={item.name}
@@ -165,10 +190,10 @@ export default function Menu({
             <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c]/50 via-transparent to-transparent opacity-40" />
           </div>
 
-          <div className="p-6 pb-0">
-            <div className="flex items-start justify-between gap-4 mb-2">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h3 className="text-xl font-bold text-white group-hover:text-primary-peach transition-colors duration-300 leading-tight">
+          <div className="p-3 sm:p-4 lg:p-5 pb-0 sm:pb-0 lg:pb-0">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-4 mb-2">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-white group-hover:text-primary-peach transition-colors duration-300 leading-tight">
                   {item.name}
                 </h3>
                 {item.badge && (
@@ -177,42 +202,42 @@ export default function Menu({
                   </span>
                 )}
               </div>
-              <span className="font-sans text-sm font-semibold text-zinc-350 shrink-0 mt-0.5 whitespace-nowrap">
+              <span className="font-sans text-xs sm:text-sm font-bold text-primary-peach shrink-0 sm:mt-0.5 whitespace-nowrap">
                 {formatPKR(item.price)}
               </span>
             </div>
 
-            <p className="text-zinc-400 text-xs font-light leading-relaxed">
+            <p className="text-zinc-400 text-[11px] sm:text-xs font-light leading-relaxed line-clamp-2 lg:line-clamp-3">
               {item.description}
             </p>
           </div>
         </div>
 
-        <div className="p-6 pt-6">
+        <div className="p-3 sm:p-4 lg:p-5 pt-3 sm:pt-4">
           {isAdded ? (
-            <div className="flex items-center gap-3.5 bg-zinc-950 border border-white/5 rounded-full p-1.5 w-fit">
+            <div className="flex items-center justify-between sm:justify-start gap-1 sm:gap-3.5 bg-zinc-950 border border-white/5 rounded-full p-1 sm:p-1.5 w-full sm:w-fit">
               <button
                 onClick={() => onDecrementItem(item.id)}
-                className="w-8 h-8 rounded-full bg-zinc-900 border border-white/5 hover:border-white/10 text-zinc-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-zinc-900 border border-white/5 hover:border-white/10 text-zinc-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
                 title="Decrease quantity"
               >
                 <Minus className="w-3.5 h-3.5" />
               </button>
-              <span className="text-xs font-semibold font-mono text-white px-1">{quantity}</span>
+              <span className="text-xs font-semibold font-mono text-white px-0.5 sm:px-1">{quantity}</span>
               <button
                 onClick={() => {
                   if (item.customizable) onOpenCustomizer(item);
                   else onIncrementItem(item.id);
                 }}
-                className="w-8 h-8 rounded-full bg-zinc-900 border border-white/5 hover:border-white/10 text-zinc-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-zinc-900 border border-white/5 hover:border-white/10 text-zinc-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
                 title="Add more"
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
-              <div className="w-px h-5 bg-white/5" />
+              <div className="hidden sm:block w-px h-5 bg-white/5" />
               <button
                 onClick={() => onRemoveAllByItemId(item.id)}
-                className="w-8 h-8 rounded-full bg-rose-500/10 border border-rose-500/20 hover:border-rose-400 text-rose-400 flex items-center justify-center transition-all cursor-pointer"
+                className="w-8 h-8 rounded-full bg-rose-500/10 border border-rose-500/20 hover:border-rose-400 text-rose-400 flex items-center justify-center transition-all cursor-pointer shrink-0"
                 title="Remove from order"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -224,7 +249,7 @@ export default function Menu({
                 if (item.customizable) onOpenCustomizer(item);
                 else onAddToOrder(item);
               }}
-              className={`px-5 py-2.5 rounded-full flex items-center justify-center gap-1.5 text-xs font-semibold tracking-wider transition-all duration-300 cursor-pointer border ${
+              className={`w-full sm:w-auto px-3 sm:px-5 py-2.5 rounded-full flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-semibold tracking-wider transition-all duration-300 cursor-pointer border ${
                 item.customizable
                   ? 'bg-transparent border-primary-peach text-primary-peach hover:bg-primary-peach/10'
                   : 'bg-transparent border-primary-peach/30 hover:border-primary-peach text-primary-peach hover:bg-primary-peach/5'
@@ -240,7 +265,7 @@ export default function Menu({
   };
 
   const itemsGrid = (list: MenuItem[]) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
       {list.map(renderItemCard)}
     </div>
   );
@@ -248,17 +273,21 @@ export default function Menu({
   const groupItemCount = (group: MenuCategoryGroup) =>
     group.subcategories.reduce((sum, sub) => sum + sub.items.length, 0);
 
+  // overflow-x-clip: the decorative blur blob extends past the viewport on
+  // small screens, which widens the mobile layout viewport (page pans
+  // sideways, fixed header outgrows the screen). `clip` doesn't create a
+  // scroll container, so the sticky tab strip keeps working.
   return (
     <section
       id="menu-section"
-      className="pb-24 bg-[#1c1c1c] min-h-screen relative border-t border-white/5"
+      className="pb-24 bg-[#1c1c1c] min-h-screen relative border-t border-white/5 overflow-x-clip"
     >
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-peach/5 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Header copy */}
-      <div className="max-w-7xl mx-auto px-6 relative z-10 pt-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 pt-12 sm:pt-24">
         <div id="menu-header" className="text-left max-w-2xl">
-          <h2 className="text-5xl font-bold tracking-tight text-white mb-4 leading-none font-sans">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-4 leading-none font-sans">
             Our Menu
           </h2>
           <p className="text-zinc-400 text-sm leading-relaxed font-light">
@@ -268,10 +297,10 @@ export default function Menu({
           {/* Current branch indicator */}
           <button
             onClick={onChangeBranch}
-            className="mt-6 inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-zinc-950 border border-white/5 hover:border-primary-peach/30 transition-all cursor-pointer group"
+            className="mt-6 inline-flex flex-wrap items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-3.5 rounded-full bg-zinc-950 border border-white/5 hover:border-primary-peach/30 transition-all cursor-pointer group"
           >
-            <Building2 className="w-6 h-6 text-primary-peach shrink-0" />
-            <span className="text-base text-zinc-300">
+            <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary-peach shrink-0" />
+            <span className="text-sm sm:text-base text-zinc-300">
               {branchName ? (
                 <>
                   Ordering from{' '}
@@ -290,7 +319,7 @@ export default function Menu({
 
       {/* Sticky underline tab strip — top-level category groups */}
       {groups.length > 0 && (
-        <div className="sticky top-20 z-30 bg-[#1c1c1c]/95 backdrop-blur-md border-b border-white/10 mt-8">
+        <div className="sticky top-[64px] md:top-[78px] z-30 bg-[#1c1c1c]/95 backdrop-blur-md border-b border-white/10 mt-8">
           <div className="max-w-7xl mx-auto px-6">
             <div className="relative">
               <div
@@ -307,7 +336,7 @@ export default function Menu({
                         tabRefs.current[group.id] = el;
                       }}
                       onClick={() => handleTabClick(group.id)}
-                      className={`shrink-0 my-2.5 px-6 py-2.5 rounded-full text-sm font-semibold tracking-[0.1em] uppercase whitespace-nowrap transition-all focus:outline-none cursor-pointer ${
+                      className={`shrink-0 my-2.5 px-4 sm:px-6 py-3 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold tracking-[0.1em] uppercase whitespace-nowrap transition-all focus:outline-none cursor-pointer ${
                         active
                           ? 'bg-primary-peach text-black shadow-lg shadow-primary-peach/10'
                           : 'text-zinc-400 hover:text-white hover:bg-white/5'
@@ -318,14 +347,36 @@ export default function Menu({
                   );
                 })}
               </div>
-              <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-[#1c1c1c] to-transparent" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-[#1c1c1c] to-transparent" />
+              {tabOverflow.left && (
+                <>
+                  <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[#1c1c1c] to-transparent" />
+                  <button
+                    onClick={() => scrollTabs(-1)}
+                    aria-label="Scroll categories left"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-[#1c1c1c]/90 border border-white/10 text-zinc-300 hover:text-white hover:border-primary-peach/40 transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+              {tabOverflow.right && (
+                <>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[#1c1c1c] to-transparent" />
+                  <button
+                    onClick={() => scrollTabs(1)}
+                    aria-label="Scroll categories right"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-[#1c1c1c]/90 border border-white/10 text-zinc-300 hover:text-white hover:border-primary-peach/40 transition-colors cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Loading state */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-28 text-center gap-4">

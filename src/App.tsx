@@ -260,40 +260,44 @@ export default function App() {
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
-  // Save profile (if changed), persist the address, then place the order.
+  // Save profile/address for signed-in users, then place the order.
+  // Guests skip the account steps — their details ride on the order itself.
   const handlePlaceOrder = async (info: CheckoutInfo) => {
-    // 1. Save name/phone to the profile if they're new or changed. Best-effort:
-    //    a failure here shouldn't block the order.
-    const profileChanged =
-      info.firstName !== (user?.firstName ?? '') ||
-      info.lastName !== (user?.lastName ?? '') ||
-      info.phone !== (user?.phone ?? '');
-    if (profileChanged) {
-      try {
-        await updateProfile({
-          firstName: info.firstName,
-          lastName: info.lastName,
-          phone: info.phone,
-        });
-        await refreshProfile();
-      } catch {
-        /* keep going — the order itself is what matters */
-      }
-    }
-
-    // 2. Resolve the delivery address id. A newly entered address always wins —
-    //    save it and use it — so we never fall back to a stale selected id.
     let deliveryAddressId: string | undefined;
-    if (info.newAddress) {
-      const created = await createAddress({
-        ...info.newAddress,
-        // Make the first saved address the default.
-        isDefault: addresses.length === 0,
-      });
-      deliveryAddressId = created.id;
-      reloadAddresses();
-    } else if (info.selectedAddressId) {
-      deliveryAddressId = info.selectedAddressId;
+
+    if (isAuthenticated) {
+      // 1. Save name/phone to the profile if they're new or changed. Best-effort:
+      //    a failure here shouldn't block the order.
+      const profileChanged =
+        info.firstName !== (user?.firstName ?? '') ||
+        info.lastName !== (user?.lastName ?? '') ||
+        info.phone !== (user?.phone ?? '');
+      if (profileChanged) {
+        try {
+          await updateProfile({
+            firstName: info.firstName,
+            lastName: info.lastName,
+            phone: info.phone,
+          });
+          await refreshProfile();
+        } catch {
+          /* keep going — the order itself is what matters */
+        }
+      }
+
+      // 2. Resolve the delivery address id. A newly entered address always wins —
+      //    save it and use it — so we never fall back to a stale selected id.
+      if (info.newAddress) {
+        const created = await createAddress({
+          ...info.newAddress,
+          // Make the first saved address the default.
+          isDefault: addresses.length === 0,
+        });
+        deliveryAddressId = created.id;
+        reloadAddresses();
+      } else if (info.selectedAddressId) {
+        deliveryAddressId = info.selectedAddressId;
+      }
     }
 
     // 3. Build and place the order.
@@ -324,6 +328,12 @@ export default function App() {
       paymentMethod: info.paymentMethod,
       // Pickup orders carry no delivery address.
       ...(orderType !== 'takeaway' && deliveryAddressId ? { deliveryAddressId } : {}),
+      // Snapshot fields — required for guests, kept for signed-in users too.
+      customerName: `${info.firstName} ${info.lastName}`.trim(),
+      customerPhone: info.phone,
+      ...(orderType !== 'takeaway' && info.deliveryAddressText
+        ? { deliveryAddress: info.deliveryAddressText }
+        : {}),
       specialInstructions,
       orderItems,
     };
@@ -331,8 +341,12 @@ export default function App() {
     return createOrder(payload);
   };
 
+  // overflow-x-clip: decorative blur blobs on several pages extend past the
+  // viewport on small screens; without clipping here the mobile layout
+  // viewport widens and the fixed header ends up narrower than the page.
+  // `clip` doesn't create a scroll container, so position:sticky still works.
   return (
-    <div id="guru-app" className="relative bg-[#1c1c1c] min-h-screen text-zinc-100 selection:bg-primary-peach selection:text-black flex flex-col justify-between">
+    <div id="guru-app" className="relative bg-[#1c1c1c] min-h-screen text-zinc-100 selection:bg-primary-peach selection:text-black flex flex-col justify-between overflow-x-clip">
       <div>
         {/* Sticky Top Header Navigation */}
         <Header
@@ -346,7 +360,7 @@ export default function App() {
         />
 
         {/* Dynamic Pages depending on active selection — animated transitions */}
-        <main className="pt-20">
+        <main className="pt-20 md:pt-28">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeSection}
@@ -422,7 +436,6 @@ export default function App() {
         onClearCart={handleClearCart}
         onEditItem={handleEditCartItem}
         isAuthenticated={isAuthenticated}
-        onRequireAuth={() => setIsAuthOpen(true)}
         onPlaceOrder={handlePlaceOrder}
         defaultFirstName={user?.firstName ?? ''}
         defaultLastName={user?.lastName ?? ''}
@@ -478,7 +491,7 @@ export default function App() {
           </div>
 
           {/* Right Links */}
-          <div className="flex items-center gap-6 text-[11px] font-semibold text-zinc-400 select-none tracking-widest uppercase">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] font-semibold text-zinc-400 select-none tracking-widest uppercase">
             <span className="hover:text-white transition-colors cursor-pointer" onClick={() => handleNavigate('home')}>Privacy Policy</span>
             <span className="hover:text-white transition-colors cursor-pointer" onClick={() => handleNavigate('home')}>Terms of Service</span>
             <span className="hover:text-white transition-colors cursor-pointer" onClick={() => handleNavigate('contact')}>Contact Us</span>

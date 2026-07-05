@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trash2, Plus, Minus, Flame, Check, X, ShoppingBag, Lock, AlertCircle, MapPin, PlusCircle, Bike, Store, Wallet, CreditCard, Pencil, LocateFixed, Loader2 } from 'lucide-react';
+import { Trash2, Plus, Minus, Flame, Check, X, ShoppingBag, AlertCircle, MapPin, PlusCircle, Bike, Store, Wallet, CreditCard, Pencil, LocateFixed, Loader2 } from 'lucide-react';
 import { CartItem } from '../types';
 import { formatPKR } from '../lib/currency';
-import { TAX_RATES } from '../lib/config';
+import { TAX_RATES, GUEST_INFO_KEY } from '../lib/config';
 import { getCurrentCoords, type GeoAddress } from '../lib/geocode';
 import LocationPicker from './LocationPicker';
+import AreaSelect from './AreaSelect';
+import { nearestArea, type LahoreArea } from '../lib/lahoreAreas';
 import type { ApiOrder, ApiUserAddress, OrderType, PaymentMethod } from '../lib/api/types';
 
 export interface NewAddressInput {
@@ -39,7 +41,6 @@ interface CartOverlayProps {
   /** Re-open the customizer to edit a customized cart line. */
   onEditItem: (item: CartItem) => void;
   isAuthenticated: boolean;
-  onRequireAuth: () => void;
   /** Places the order against the backend. Resolves with the created order. */
   onPlaceOrder: (info: CheckoutInfo) => Promise<ApiOrder>;
   defaultFirstName?: string;
@@ -55,6 +56,39 @@ interface CartOverlayProps {
 const formatAddress = (a: ApiUserAddress): string =>
   [a.addressLine1, a.landmark, a.city, a.postalCode].filter(Boolean).join(', ');
 
+/** Guest checkout details persisted locally so a returning guest doesn't retype them. */
+interface StoredGuestInfo {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  addressLine1?: string;
+  landmark?: string;
+  postalCode?: string;
+  area?: string;
+}
+
+const loadGuestInfo = (): StoredGuestInfo | null => {
+  try {
+    const raw = localStorage.getItem(GUEST_INFO_KEY);
+    return raw ? (JSON.parse(raw) as StoredGuestInfo) : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveGuestInfo = (entry: StoredGuestInfo) => {
+  try {
+    // Merge over what's already stored, so e.g. a pickup order (no address
+    // fields) doesn't wipe the address saved from an earlier delivery order.
+    localStorage.setItem(
+      GUEST_INFO_KEY,
+      JSON.stringify({ ...loadGuestInfo(), ...entry }),
+    );
+  } catch {
+    // localStorage unavailable (private mode) — skip persisting.
+  }
+};
+
 export default function CartOverlay({
   isOpen,
   onClose,
@@ -64,7 +98,6 @@ export default function CartOverlay({
   onClearCart,
   onEditItem,
   isAuthenticated,
-  onRequireAuth,
   onPlaceOrder,
   defaultFirstName = '',
   defaultLastName = '',
@@ -87,7 +120,8 @@ export default function CartOverlay({
   const [addressMode, setAddressMode] = useState<'saved' | 'new'>('new');
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [addressLine1, setAddressLine1] = useState<string>('');
-  const [city, setCity] = useState<string>('Lahore');
+  const [area, setArea] = useState<string>('');
+  const city = 'Lahore';
   const [postalCode, setPostalCode] = useState<string>('');
   const [landmark, setLandmark] = useState<string>('');
 
@@ -106,11 +140,17 @@ export default function CartOverlay({
   const [placedIsPickup, setPlacedIsPickup] = useState(false);
 
   // Fill the address fields from a resolved map/geolocation address.
-  const applyGeo = (geo: GeoAddress) => {
+  const applyGeo = (geo: GeoAddress, coords: [number, number]) => {
     if (geo.addressLine1) setAddressLine1(geo.addressLine1);
     if (geo.landmark) setLandmark(geo.landmark);
-    if (geo.city) setCity(geo.city);
     if (geo.postalCode) setPostalCode(geo.postalCode);
+    setArea(nearestArea(coords[0], coords[1]).name);
+  };
+
+  // Recenter the map on the chosen area; the picker resolves + fills the fields.
+  const handleAreaSelect = (a: LahoreArea) => {
+    setArea(a.name);
+    setMapCenter([a.lat, a.lng]);
   };
 
   const useMyLocation = async () => {
@@ -127,6 +167,11 @@ export default function CartOverlay({
   };
 
   const isPickup = orderType === 'takeaway';
+
+  // Card is pickup-only; fall back to cash when switching to delivery.
+  useEffect(() => {
+    if (!isPickup && paymentMethod === 'card') setPaymentMethod('cash');
+  }, [isPickup, paymentMethod]);
 
   const getItemSinglePrice = (item: CartItem) => {
     const modificationsPrice = item.selectedConfig
@@ -149,14 +194,21 @@ export default function CartOverlay({
     { label: 'Packed and ready', desc: 'Sealed and handed over to the courier.' }
   ];
 
-  // Prefill name/phone from the signed-in profile when the form opens.
+  // Prefill when the form opens: from the signed-in profile, or for guests
+  // from the details they used on their last order (persisted locally).
   useEffect(() => {
-    if (isOpen) {
-      setFirstName((prev) => prev || defaultFirstName);
-      setLastName((prev) => prev || defaultLastName);
-      setPhone((prev) => prev || defaultPhone);
+    if (!isOpen) return;
+    const stored = isAuthenticated ? null : loadGuestInfo();
+    setFirstName((prev) => prev || defaultFirstName || stored?.firstName || '');
+    setLastName((prev) => prev || defaultLastName || stored?.lastName || '');
+    setPhone((prev) => prev || defaultPhone || stored?.phone || '');
+    if (stored) {
+      setAddressLine1((prev) => prev || stored.addressLine1 || '');
+      setLandmark((prev) => prev || stored.landmark || '');
+      setPostalCode((prev) => prev || stored.postalCode || '');
+      setArea((prev) => prev || stored.area || '');
     }
-  }, [isOpen, defaultFirstName, defaultLastName, defaultPhone]);
+  }, [isOpen, isAuthenticated, defaultFirstName, defaultLastName, defaultPhone]);
 
   // Default the address mode/selection based on what the user has saved.
   useEffect(() => {
@@ -209,8 +261,6 @@ export default function CartOverlay({
         if (!selectedAddressId) newErrors.address = 'Please select a delivery address';
       } else {
         if (!addressLine1.trim()) newErrors.addressLine1 = 'Address is required';
-        if (!city.trim()) newErrors.city = 'City is required';
-        if (!postalCode.trim()) newErrors.postalCode = 'Postal code is required';
       }
     }
 
@@ -220,10 +270,7 @@ export default function CartOverlay({
 
   const handleStartCheckout = () => {
     if (cartItems.length === 0) return;
-    if (!isAuthenticated) {
-      onRequireAuth();
-      return;
-    }
+    // Guests can check out too — their details are collected in the next step.
     setOrderError(null);
     setCheckoutStep(1);
   };
@@ -278,6 +325,21 @@ export default function CartOverlay({
     setActiveBrewStep(0);
     try {
       const order = await onPlaceOrder(info);
+      if (!isAuthenticated) {
+        saveGuestInfo({
+          firstName: info.firstName,
+          lastName: info.lastName,
+          phone: info.phone,
+          ...(isPickup
+            ? {}
+            : {
+                addressLine1: addressLine1.trim(),
+                landmark: landmark.trim(),
+                postalCode: postalCode.trim(),
+                area,
+              }),
+        });
+      }
       setPlacedInfo(info);
       setPlacedIsPickup(isPickup);
       setPlacedOrder(order);
@@ -343,13 +405,13 @@ export default function CartOverlay({
           />
 
           {/* Right Sliding Drawer */}
-          <div className="absolute inset-y-0 right-0 max-w-full flex pl-10 md:pl-16">
+          <div className="absolute inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10 md:pl-16">
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="w-screen max-w-md bg-[#1c1c1c] border-l border-white/5 flex flex-col justify-between h-full shadow-2xl relative"
+              className="w-screen sm:max-w-md bg-[#1c1c1c] border-l border-white/5 flex flex-col justify-between h-full shadow-2xl relative"
             >
               {/* Header */}
               <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between shrink-0">
@@ -424,7 +486,7 @@ export default function CartOverlay({
                                         {Object.entries(item.selectedConfig).map(([optName, choice]) => (
                                           <span
                                             key={optName}
-                                            className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/5 text-zinc-400 font-mono"
+                                            className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 border border-white/5 text-zinc-400 font-mono"
                                           >
                                             {choice.name}
                                             {choice.extraPrice && choice.extraPrice > 0
@@ -441,15 +503,15 @@ export default function CartOverlay({
                                       <div className="flex items-center gap-1">
                                         <button
                                           onClick={() => onUpdateQuantity(item.cartId, -1)}
-                                          className="text-zinc-500 hover:text-white p-0.5 transition-colors cursor-pointer"
+                                          className="text-zinc-500 hover:text-white p-2 -my-1 transition-colors cursor-pointer"
                                         >
-                                          <Minus className="w-3 h-3" />
+                                          <Minus className="w-3.5 h-3.5" />
                                         </button>
                                         <button
                                           onClick={() => onUpdateQuantity(item.cartId, 1)}
-                                          className="text-zinc-500 hover:text-white p-0.5 transition-colors cursor-pointer"
+                                          className="text-zinc-500 hover:text-white p-2 -my-1 transition-colors cursor-pointer"
                                         >
-                                          <Plus className="w-3 h-3" />
+                                          <Plus className="w-3.5 h-3.5" />
                                         </button>
                                       </div>
                                       {item.selectedConfig && Object.keys(item.selectedConfig).length > 0 && (
@@ -457,9 +519,9 @@ export default function CartOverlay({
                                           <span className="text-zinc-800 block text-xs">|</span>
                                           <button
                                             onClick={() => onEditItem(item)}
-                                            className="flex items-center gap-1 text-primary-peach hover:text-primary-peach-light text-[10px] font-semibold uppercase tracking-wider transition-colors cursor-pointer"
+                                            className="flex items-center gap-1 text-primary-peach hover:text-primary-peach-light text-[10px] font-semibold uppercase tracking-wider transition-colors cursor-pointer p-2 -my-1"
                                           >
-                                            <Pencil className="w-2.5 h-2.5" /> Edit
+                                            <Pencil className="w-3 h-3" /> Edit
                                           </button>
                                         </>
                                       )}
@@ -473,10 +535,10 @@ export default function CartOverlay({
                                   </span>
                                   <button
                                     onClick={() => onRemoveItem(item.cartId)}
-                                    className="text-zinc-600 hover:text-rose-400 p-1.5 rounded-lg transition-colors cursor-pointer"
+                                    className="text-zinc-600 hover:text-rose-400 p-2.5 rounded-lg transition-colors cursor-pointer"
                                     title="Remove product"
                                   >
-                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <Trash2 className="w-4 h-4" />
                                   </button>
                                 </div>
                                 </div>
@@ -547,7 +609,7 @@ export default function CartOverlay({
                               type="text"
                               value={firstName}
                               onChange={(e) => setFirstName(e.target.value)}
-                              placeholder="Moeez"
+                              placeholder="First Name"
                               className={`${inputBase} ${inputBorder(errors.firstName)}`}
                             />
                             {errors.firstName && (
@@ -562,7 +624,7 @@ export default function CartOverlay({
                               type="text"
                               value={lastName}
                               onChange={(e) => setLastName(e.target.value)}
-                              placeholder="Ahmad"
+                              placeholder="Last Name"
                               className={`${inputBase} ${inputBorder(errors.lastName)}`}
                             />
                             {errors.lastName && (
@@ -658,7 +720,7 @@ export default function CartOverlay({
                               {/* Map picker */}
                               <LocationPicker center={mapCenter} onPick={applyGeo} />
                               <p className="text-zinc-600 text-[10px] font-light">
-                                Tap the map or drag the pin to set your exact location.
+                                Select your area or drop the pin — the address fills in automatically.
                               </p>
                               <button
                                 type="button"
@@ -676,6 +738,7 @@ export default function CartOverlay({
                               {locationError && (
                                 <p className="text-rose-400 text-[10px] font-medium">{locationError}</p>
                               )}
+                              <AreaSelect value={area} onSelect={handleAreaSelect} />
                               <div className="space-y-1.5">
                                 <input
                                   type="text"
@@ -688,41 +751,26 @@ export default function CartOverlay({
                                   <p className="text-rose-400 text-[10px] font-medium mt-1">{errors.addressLine1}</p>
                                 )}
                               </div>
-                              <input
-                                type="text"
-                                value={landmark}
-                                onChange={(e) => setLandmark(e.target.value)}
-                                placeholder="Landmark (optional)"
-                                className={`${inputBase} ${inputBorder()}`}
-                              />
                               <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-1.5">
-                                  <input
-                                    type="text"
-                                    value={city}
-                                    onChange={(e) => setCity(e.target.value)}
-                                    placeholder="City"
-                                    className={`${inputBase} ${inputBorder(errors.city)}`}
-                                  />
-                                  {errors.city && (
-                                    <p className="text-rose-400 text-[10px] font-medium mt-1">{errors.city}</p>
-                                  )}
-                                </div>
-                                <div className="space-y-1.5">
-                                  <input
-                                    type="text"
-                                    value={postalCode}
-                                    onChange={(e) => setPostalCode(e.target.value)}
-                                    placeholder="Postal Code"
-                                    className={`${inputBase} ${inputBorder(errors.postalCode)}`}
-                                  />
-                                  {errors.postalCode && (
-                                    <p className="text-rose-400 text-[10px] font-medium mt-1">{errors.postalCode}</p>
-                                  )}
-                                </div>
+                                <input
+                                  type="text"
+                                  value={landmark}
+                                  onChange={(e) => setLandmark(e.target.value)}
+                                  placeholder="Landmark (optional)"
+                                  className={`${inputBase} ${inputBorder()}`}
+                                />
+                                <input
+                                  type="text"
+                                  value={postalCode}
+                                  onChange={(e) => setPostalCode(e.target.value)}
+                                  placeholder="Postal Code (optional)"
+                                  className={`${inputBase} ${inputBorder()}`}
+                                />
                               </div>
                               <p className="text-zinc-600 text-[10px] font-light">
-                                This address will be saved to your account.
+                                {isAuthenticated
+                                  ? 'This address will be saved to your account.'
+                                  : 'This address is used for this order only. Sign in to save addresses.'}
                               </p>
                             </div>
                           )}
@@ -756,10 +804,17 @@ export default function CartOverlay({
                           <label className="text-zinc-400 text-[10px] font-semibold tracking-wider uppercase block">
                             Payment Method
                           </label>
-                          <div className="grid grid-cols-2 gap-2 p-1 bg-zinc-950 border border-white/5 rounded-2xl">
+                          <div
+                            className={`grid gap-2 p-1 bg-zinc-950 border border-white/5 rounded-2xl ${
+                              isPickup ? 'grid-cols-2' : 'grid-cols-1'
+                            }`}
+                          >
                             {([
                               { method: 'cash' as const, label: 'Cash', Icon: Wallet },
-                              { method: 'card' as const, label: 'Card', Icon: CreditCard },
+                              // Card payment is only available at the counter for pickup.
+                              ...(isPickup
+                                ? [{ method: 'card' as const, label: 'Card', Icon: CreditCard }]
+                                : []),
                             ]).map(({ method, label, Icon }) => {
                               const active = paymentMethod === method;
                               return (
@@ -925,7 +980,7 @@ export default function CartOverlay({
                       <p className="text-zinc-400 text-xs font-light max-w-xs leading-relaxed mb-6">
                         {placedIsPickup
                           ? `Your order will be ready for pickup at our ${branchName ?? 'nearest'} branch.`
-                          : `Your order will be prepared and delivered from our ${branchName ?? 'nearest'} branch.`}
+                          : `Your order has been placed at our ${branchName ?? 'nearest'} branch. The rider will contact you shortly.`}
                       </p>
 
                       <div className="w-full bg-zinc-950 border border-white/5 rounded-2xl p-4 mb-6 text-left space-y-2.5 font-mono text-[11px] text-zinc-500">
@@ -950,7 +1005,7 @@ export default function CartOverlay({
                         </div>
                         <div className="flex justify-between">
                           <span>Recipient Name:</span>
-                          <span className="text-white font-semibold truncate max-w-[150px]">
+                          <span className="text-white font-semibold truncate max-w-[55vw] sm:max-w-[150px]">
                             {[placedInfo?.firstName, placedInfo?.lastName].filter(Boolean).join(' ') || recipientName}
                           </span>
                         </div>
@@ -961,7 +1016,7 @@ export default function CartOverlay({
                         <div className="flex justify-between">
                           <span>{placedIsPickup ? 'Pickup At:' : 'Destination:'}</span>
                           <span
-                            className="text-white font-semibold truncate max-w-[155px]"
+                            className="text-white font-semibold truncate max-w-[55vw] sm:max-w-[155px]"
                             title={placedInfo?.deliveryAddressText ?? confirmedAddressText}
                           >
                             {placedInfo?.deliveryAddressText ?? confirmedAddressText}
@@ -971,7 +1026,7 @@ export default function CartOverlay({
                           <div className="flex justify-between">
                             <span>Special Request:</span>
                             <span
-                              className="text-white font-semibold truncate max-w-[155px]"
+                              className="text-white font-semibold truncate max-w-[55vw] sm:max-w-[155px]"
                               title={placedInfo?.riderNote ?? riderNote}
                             >
                               {placedInfo?.riderNote ?? riderNote}
@@ -1017,8 +1072,7 @@ export default function CartOverlay({
                     onClick={handleStartCheckout}
                     className="w-full py-3.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-semibold text-xs tracking-[0.15em] rounded-full transition-all duration-300 active:scale-95 cursor-pointer uppercase text-center flex items-center justify-center gap-2"
                   >
-                    {!isAuthenticated && <Lock className="w-3.5 h-3.5" />}
-                    {isAuthenticated ? 'CHECKOUT NOW' : 'SIGN IN TO CHECKOUT'}
+                    CHECKOUT NOW
                   </button>
                 </div>
               )}

@@ -1,0 +1,17 @@
+# SPA fallback for Apache/LiteSpeed (Hostinger).
+# The app uses history.pushState routes (/menu, /story, ...), which don't exist
+# as files on disk — rewrite them to index.html so deep links and refreshes
+# work. Vite copies this file from public/ into the dist/ build output.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Serve real files and directories (assets, images) as-is.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Everything else falls back to the SPA entry point.
+  RewriteRule ^ index.html [L]
+</IfModule>

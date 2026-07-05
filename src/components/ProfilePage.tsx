@@ -103,7 +103,7 @@ export default function ProfilePage({ onRequireAuth }: ProfilePageProps) {
             className="space-y-8"
           >
             {/* Details card */}
-            <div className="bg-[#242424] border border-white/5 rounded-3xl p-7">
+            <div className="bg-[#242424] border border-white/5 rounded-3xl p-5 sm:p-7">
               <h3 className="text-white font-bold text-lg mb-6 flex items-center gap-2">
                 <User className="w-5 h-5 text-primary-peach" /> Personal Details
               </h3>
@@ -135,7 +135,7 @@ export default function ProfilePage({ onRequireAuth }: ProfilePageProps) {
                       type="text"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Moeez"
+                      placeholder="First Name"
                       className={inputBase}
                     />
                   </div>
@@ -147,7 +147,7 @@ export default function ProfilePage({ onRequireAuth }: ProfilePageProps) {
                       type="text"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Ahmad"
+                      placeholder="Last Name"
                       className={inputBase}
                     />
                   </div>
@@ -185,7 +185,7 @@ export default function ProfilePage({ onRequireAuth }: ProfilePageProps) {
             </div>
 
             {/* Saved addresses */}
-            <div className="bg-[#242424] border border-white/5 rounded-3xl p-7">
+            <div className="bg-[#242424] border border-white/5 rounded-3xl p-5 sm:p-7">
               <div className="flex items-center justify-between gap-3 mb-5">
                 <h3 className="text-white font-bold text-lg flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-primary-peach" /> Saved Addresses
@@ -222,10 +222,10 @@ export default function ProfilePage({ onRequireAuth }: ProfilePageProps) {
                       </div>
                       <button
                         onClick={() => openEditAddress(a)}
-                        className="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-colors cursor-pointer shrink-0"
+                        className="p-2.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-colors cursor-pointer shrink-0"
                         title="Edit address"
                       >
-                        <Pencil className="w-3.5 h-3.5" />
+                        <Pencil className="w-4 h-4" />
                       </button>
                     </div>
                   ))}

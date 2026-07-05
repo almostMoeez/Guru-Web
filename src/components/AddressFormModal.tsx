@@ -5,6 +5,8 @@ import { createAddress, updateAddress } from '../lib/api/users';
 import { getCurrentCoords, type GeoAddress } from '../lib/geocode';
 import { ApiError } from '../lib/api/client';
 import LocationPicker from './LocationPicker';
+import AreaSelect from './AreaSelect';
+import { nearestArea, type LahoreArea } from '../lib/lahoreAreas';
 import type { ApiUserAddress } from '../lib/api/types';
 
 interface AddressFormModalProps {
@@ -24,7 +26,7 @@ export default function AddressFormModal({
   const editing = Boolean(address);
   const [addressLine1, setAddressLine1] = useState('');
   const [landmark, setLandmark] = useState('');
-  const [city, setCity] = useState('Lahore');
+  const [area, setArea] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [isDefault, setIsDefault] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -36,7 +38,7 @@ export default function AddressFormModal({
     if (isOpen) {
       setAddressLine1(address?.addressLine1 ?? '');
       setLandmark(address?.landmark ?? '');
-      setCity(address?.city ?? 'Lahore');
+      setArea('');
       setPostalCode(address?.postalCode ?? '');
       setIsDefault(address?.isDefault ?? false);
       setError(null);
@@ -45,11 +47,17 @@ export default function AddressFormModal({
   }, [isOpen, address]);
 
   // Fill the form from a resolved map/geolocation address.
-  const applyGeo = (geo: GeoAddress) => {
+  const applyGeo = (geo: GeoAddress, coords: [number, number]) => {
     if (geo.addressLine1) setAddressLine1(geo.addressLine1);
     if (geo.landmark) setLandmark(geo.landmark);
-    if (geo.city) setCity(geo.city);
     if (geo.postalCode) setPostalCode(geo.postalCode);
+    setArea(nearestArea(coords[0], coords[1]).name);
+  };
+
+  // Recenter the map on the chosen area; the picker resolves + fills the fields.
+  const handleAreaSelect = (a: LahoreArea) => {
+    setArea(a.name);
+    setMapCenter([a.lat, a.lng]);
   };
 
   const useMyLocation = async () => {
@@ -68,14 +76,14 @@ export default function AddressFormModal({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!addressLine1.trim() || !city.trim() || !postalCode.trim()) {
-      setError('Address, city and postal code are required.');
+    if (!addressLine1.trim()) {
+      setError('Address is required.');
       return;
     }
     setSaving(true);
     const payload = {
       addressLine1: addressLine1.trim(),
-      city: city.trim(),
+      city: 'Lahore',
       postalCode: postalCode.trim(),
       landmark: landmark.trim() || undefined,
       isDefault,
@@ -122,7 +130,7 @@ export default function AddressFormModal({
               <X className="w-5 h-5" />
             </button>
 
-            <div className="p-7 md:p-8">
+            <div className="p-5 sm:p-7 md:p-8">
               <div className="w-12 h-12 rounded-full bg-primary-peach/10 border border-primary-peach/20 flex items-center justify-center mb-5">
                 <MapPin className="w-5 h-5 text-primary-peach" />
               </div>
@@ -136,7 +144,7 @@ export default function AddressFormModal({
               {/* Map picker */}
               <LocationPicker center={mapCenter} onPick={applyGeo} />
               <p className="text-zinc-600 text-[10px] font-light mt-1.5 mb-3">
-                Tap the map or drag the pin to set your exact location.
+                Select your area or drop the pin — the address fills in automatically.
               </p>
 
               {/* Use my location */}
@@ -163,6 +171,13 @@ export default function AddressFormModal({
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-zinc-400 text-[10px] font-semibold tracking-wider uppercase block">
+                    Area
+                  </label>
+                  <AreaSelect value={area} onSelect={handleAreaSelect} />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-zinc-400 text-[10px] font-semibold tracking-wider uppercase block">
                     Address <span className="text-primary-peach">*</span>
                   </label>
                   <input
@@ -174,36 +189,28 @@ export default function AddressFormModal({
                   />
                 </div>
 
-                <input
-                  type="text"
-                  value={landmark}
-                  onChange={(e) => setLandmark(e.target.value)}
-                  placeholder="Landmark (optional)"
-                  className={inputBase}
-                />
-
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <label className="text-zinc-400 text-[10px] font-semibold tracking-wider uppercase block">
-                      City <span className="text-primary-peach">*</span>
+                      Landmark
                     </label>
                     <input
                       type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="City"
+                      value={landmark}
+                      onChange={(e) => setLandmark(e.target.value)}
+                      placeholder="Optional"
                       className={inputBase}
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-zinc-400 text-[10px] font-semibold tracking-wider uppercase block">
-                      Postal Code <span className="text-primary-peach">*</span>
+                      Postal Code
                     </label>
                     <input
                       type="text"
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
-                      placeholder="54000"
+                      placeholder="Optional"
                       className={inputBase}
                     />
                   </div>

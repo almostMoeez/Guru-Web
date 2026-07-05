@@ -177,8 +177,8 @@ export default function CustomizationOverlay({
             </div>
 
             {/* Price & Add To Order Sticky Footer */}
-            <div className="p-6 md:p-8 border-t border-white/5 bg-[#141414] flex items-center justify-between gap-6 shrink-0 z-10">
-              <div className="space-y-0.5">
+            <div className="p-4 sm:p-6 md:p-8 border-t border-white/5 bg-[#141414] flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-6 shrink-0 z-10">
+              <div className="space-y-0.5 flex items-baseline justify-between sm:block">
                 <span className="text-zinc-500 text-[10px] font-mono tracking-wider uppercase block">
                   Total Price
                 </span>
@@ -191,7 +191,7 @@ export default function CustomizationOverlay({
                 onClick={() => {
                   onConfirm(menuItem, selectedConfig);
                 }}
-                className="px-6 py-3.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-bold text-xs tracking-wider rounded-full flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer uppercase shadow-lg shadow-primary-peach/5"
+                className="w-full sm:w-auto px-6 py-3.5 bg-primary-peach hover:bg-primary-peach-dark text-black font-bold text-xs tracking-wider rounded-full flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer uppercase shadow-lg shadow-primary-peach/5"
               >
                 <Check className="w-4 h-4 shrink-0" />
                 {isEditing ? 'Save Changes' : 'Add Customized Selection'}

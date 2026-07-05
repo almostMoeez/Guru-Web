@@ -111,7 +111,7 @@ export interface ApiUserAddress {
   addressLine2: string | null;
   city: string;
   state: string | null;
-  postalCode: string;
+  postalCode: string | null;
   landmark: string | null;
   isDefault: boolean;
 }
@@ -121,7 +121,7 @@ export interface CreateAddressPayload {
   addressLine2?: string;
   city: string;
   state?: string;
-  postalCode: string;
+  postalCode?: string;
   landmark?: string;
   isDefault?: boolean;
 }
@@ -142,6 +142,11 @@ export interface CreateOrderPayload {
   // Backend requires a payment method on every order.
   paymentMethod: PaymentMethod;
   deliveryAddressId?: string;
+  // Checkout snapshot — required for guest orders, sent for everyone.
+  customerName?: string;
+  customerPhone?: string;
+  /** Full delivery address text as entered at checkout (delivery orders). */
+  deliveryAddress?: string;
   specialInstructions?: string;
   orderItems: CreateOrderItem[];
 }
