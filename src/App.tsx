@@ -314,13 +314,9 @@ export default function App() {
       };
     });
 
-    const specialInstructions = [
-      `Name: ${info.firstName} ${info.lastName}`,
-      `Phone: ${info.phone}`,
-      info.riderNote ? `Special request: ${info.riderNote}` : '',
-    ]
-      .filter(Boolean)
-      .join(' | ');
+    // Name/phone travel in the dedicated customerName/customerPhone fields;
+    // special instructions carry only the rider's note.
+    const specialInstructions = info.riderNote.trim();
 
     const payload: CreateOrderPayload = {
       branchId: branchId ?? DEFAULT_BRANCH_ID,
@@ -334,7 +330,7 @@ export default function App() {
       ...(orderType !== 'takeaway' && info.deliveryAddressText
         ? { deliveryAddress: info.deliveryAddressText }
         : {}),
-      specialInstructions,
+      ...(specialInstructions ? { specialInstructions } : {}),
       orderItems,
     };
 
