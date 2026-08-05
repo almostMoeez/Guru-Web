@@ -2,6 +2,11 @@
 // Backend (NestJS) defaults to port 3000, but the frontend dev server also uses
 // 3000 — run the backend on 4000 (set PORT=4000 in the backend .env) to avoid a clash.
 
+// Site-wide maintenance switch. When true, every route renders the themed
+// "Coming Soon" page instead of the app (see main.tsx). Flip to false to go live.
+export const UNDER_CONSTRUCTION: boolean =
+  (import.meta.env.VITE_UNDER_CONSTRUCTION ?? 'true') !== 'false';
+
 const rawBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000').trim();
 
 // Tolerate a base URL without a scheme (e.g. "localhost:4000"): without
