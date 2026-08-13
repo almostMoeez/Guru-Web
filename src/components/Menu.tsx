@@ -188,6 +188,19 @@ export default function Menu({
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c]/50 via-transparent to-transparent opacity-40" />
+            {/* Tag pills — same style/position as the homepage signature cards. */}
+            {item.tags && item.tags.length > 0 && (
+              <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex flex-col gap-1.5 items-start">
+                {item.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="bg-primary-peach text-black text-[9px] font-bold tracking-[0.12em] uppercase px-2.5 py-1 rounded-full shadow-sm"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="p-3 sm:p-4 lg:p-5 pb-0 sm:pb-0 lg:pb-0">
