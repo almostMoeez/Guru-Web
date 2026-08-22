@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Star,
   Flame,
@@ -11,19 +11,22 @@ import {
   ArrowRight,
   Building2,
   Quote,
-} from 'lucide-react';
-import heroDishImage from '../assets/images/guru_hero_dish_1780074619455.png';
-import { formatPKR } from '../lib/currency';
-import { BRANCHES } from '../lib/config';
-import type { MenuItem } from '../types';
+} from "lucide-react";
+import heroDishImage from "../assets/images/guru_hero_dish_1780074619455.png";
+import mexicanChickenImage from "../assets/images/GURU Mexican Chicken - Isometric View 1.jpg";
+import grilledStuffedChickenImage from "../assets/images/Grilled Stuffed Chicken - Isometric View 2.jpg";
+import napoleonSteakImage from "../assets/images/napoleon_steak.jpeg";
+import honeyMustardImage from "../assets/images/honey_mustard.jpeg";
+import { formatPKR } from "../lib/currency";
+import { BRANCHES } from "../lib/config";
+import type { MenuItem } from "../types";
 
 // Images cycled in the hero showcase slider.
 const HERO_IMAGES = [
-  heroDishImage,
-  'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=900&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1476124369491-e7addf5db371?q=80&w=900&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=900&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1551183053-bf91a1d81141?q=80&w=900&auto=format&fit=crop',
+  mexicanChickenImage,
+  grilledStuffedChickenImage,
+  napoleonSteakImage,
+  honeyMustardImage,
 ];
 
 interface HomePageProps {
@@ -39,24 +42,48 @@ interface HomePageProps {
 const reveal = {
   initial: { opacity: 0, y: 28 },
   whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: '-80px' },
-  transition: { duration: 0.6, ease: 'easeOut' as const },
+  viewport: { once: true, margin: "-80px" },
+  transition: { duration: 0.6, ease: "easeOut" as const },
 };
 
 const STATS = [
-  { value: '4.9★', label: 'Avg Rating' },
-  { value: '120+', label: 'Signature Dishes' },
-  { value: '2', label: 'Lahore Branches' },
-  { value: '25k+', label: 'Happy Guests' },
+  { value: "4.9★", label: "Avg Rating" },
+  { value: "120+", label: "Signature Dishes" },
+  { value: "2", label: "Lahore Branches" },
+  { value: "25k+", label: "Happy Guests" },
 ];
 
 const EXPERIENCE = [
-  { icon: Flame, title: 'Flame-Grilled to Order', desc: 'Every dish fired the moment you order — never before.' },
-  { icon: Leaf, title: 'Farm-Fresh Daily', desc: 'Produce hand-picked each morning from local growers.' },
-  { icon: ChefHat, title: 'Master Chefs', desc: 'Plates composed by award-winning culinary artists.' },
-  { icon: Coffee, title: 'Artisan Coffee', desc: 'Single-origin beans, pulled to liquid-gold perfection.' },
-  { icon: Bike, title: 'Swift Delivery', desc: 'Piping hot to your door, right across Lahore.' },
-  { icon: Clock, title: 'Open Late', desc: 'Serving the city until midnight, every single night.' },
+  {
+    icon: Flame,
+    title: "Flame-Grilled to Order",
+    desc: "Every dish fired the moment you order — never before.",
+  },
+  {
+    icon: Leaf,
+    title: "Farm-Fresh Daily",
+    desc: "Produce hand-picked each morning from local growers.",
+  },
+  {
+    icon: ChefHat,
+    title: "Master Chefs",
+    desc: "Plates composed by award-winning culinary artists.",
+  },
+  {
+    icon: Coffee,
+    title: "Artisan Coffee",
+    desc: "Single-origin beans, pulled to liquid-gold perfection.",
+  },
+  {
+    icon: Bike,
+    title: "Swift Delivery",
+    desc: "Piping hot to your door, right across Lahore.",
+  },
+  {
+    icon: Clock,
+    title: "Open Late",
+    desc: "Serving the city until midnight, every single night.",
+  },
 ];
 
 export default function HomePage({
@@ -94,7 +121,7 @@ export default function HomePage({
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-center lg:text-left"
           >
             <span className="inline-flex items-center gap-3 text-3xl sm:text-4xl md:text-5xl font-bold text-primary-peach tracking-tight leading-tight mb-6">
@@ -125,8 +152,18 @@ export default function HomePage({
               </button>
               <motion.button
                 onClick={onFindUs}
-                animate={{ boxShadow: ['0 0 0px 0px rgba(230,126,34,0)', '0 0 22px 1px rgba(230,126,34,0.45)'] }}
-                transition={{ duration: 1.6, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+                animate={{
+                  boxShadow: [
+                    "0 0 0px 0px rgba(230,126,34,0)",
+                    "0 0 22px 1px rgba(230,126,34,0.45)",
+                  ],
+                }}
+                transition={{
+                  duration: 1.6,
+                  repeat: Infinity,
+                  repeatType: "mirror",
+                  ease: "easeInOut",
+                }}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 className="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/20 hover:border-white hover:bg-white/5 text-white font-semibold text-xs tracking-[0.16em] rounded-full cursor-pointer uppercase"
@@ -139,7 +176,9 @@ export default function HomePage({
             <div className="mt-10 md:mt-12 grid grid-cols-3 gap-3 sm:gap-6 max-w-md mx-auto lg:mx-0">
               {STATS.slice(0, 3).map((s) => (
                 <div key={s.label} className="text-center lg:text-left">
-                  <div className="text-2xl md:text-3xl font-bold text-white">{s.value}</div>
+                  <div className="text-2xl md:text-3xl font-bold text-white">
+                    {s.value}
+                  </div>
                   <div className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono mt-1">
                     {s.label}
                   </div>
@@ -152,14 +191,14 @@ export default function HomePage({
           <motion.div
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.9, ease: 'easeOut', delay: 0.15 }}
+            transition={{ duration: 0.9, ease: "easeOut", delay: 0.15 }}
             className="relative hidden lg:block"
           >
             <div className="relative aspect-square max-w-lg mx-auto">
               {/* Rotating ring */}
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
+                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
                 className="absolute inset-0 rounded-full border border-dashed border-primary-peach/20"
               />
               <div className="absolute inset-6 rounded-full overflow-hidden border border-white/10 shadow-2xl">
@@ -187,7 +226,9 @@ export default function HomePage({
                     onClick={() => setSlide(i)}
                     aria-label={`Show image ${i + 1}`}
                     className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                      i === slide ? 'w-5 bg-primary-peach' : 'w-2 bg-white/30 hover:bg-white/50'
+                      i === slide
+                        ? "w-5 bg-primary-peach"
+                        : "w-2 bg-white/30 hover:bg-white/50"
                     }`}
                   />
                 ))}
@@ -204,8 +245,12 @@ export default function HomePage({
                   <Star className="w-3.5 h-3.5 text-primary-peach fill-primary-peach" />
                 </span>
                 <span className="flex items-baseline gap-1.5">
-                  <span className="text-white text-sm font-bold leading-none">4.9</span>
-                  <span className="text-[10px] text-zinc-400 font-light">Loved by 25k</span>
+                  <span className="text-white text-sm font-bold leading-none">
+                    4.9
+                  </span>
+                  <span className="text-[10px] text-zinc-400 font-light">
+                    Loved by 25k
+                  </span>
                 </span>
               </motion.div>
 
@@ -218,7 +263,9 @@ export default function HomePage({
                 <span className="w-7 h-7 rounded-full bg-primary-peach/20 flex items-center justify-center shrink-0">
                   <Flame className="w-3.5 h-3.5 text-primary-peach" />
                 </span>
-                <span className="text-[11px] text-zinc-200 font-medium">Flame-grilled fresh</span>
+                <span className="text-[11px] text-zinc-200 font-medium">
+                  Flame-grilled fresh
+                </span>
               </motion.div>
             </div>
           </motion.div>
@@ -226,7 +273,9 @@ export default function HomePage({
 
         {/* Scroll cue */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-zinc-600">
-          <span className="text-[9px] uppercase tracking-[0.3em] font-mono">Scroll</span>
+          <span className="text-[9px] uppercase tracking-[0.3em] font-mono">
+            Scroll
+          </span>
           <div className="w-px h-8 bg-gradient-to-b from-primary-peach/60 to-transparent" />
         </div>
       </section>
@@ -249,7 +298,9 @@ export default function HomePage({
           </motion.div>
 
           {signatureItems.length === 0 ? (
-            <p className="text-zinc-500 text-sm font-light">Our favourites are loading…</p>
+            <p className="text-zinc-500 text-sm font-light">
+              Our favourites are loading…
+            </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {signatureItems.map((dish, i) => (
@@ -258,8 +309,12 @@ export default function HomePage({
                   onClick={onExploreMenu}
                   initial={{ opacity: 0, y: 28 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.5, ease: 'easeOut', delay: i * 0.08 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{
+                    duration: 0.5,
+                    ease: "easeOut",
+                    delay: i * 0.08,
+                  }}
                   className="group text-left bg-[#242424] border border-white/5 hover:border-primary-peach/20 rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
                 >
                   <div className="relative h-52 overflow-hidden bg-zinc-950">
@@ -311,7 +366,10 @@ export default function HomePage({
       {/* ──────────────────── EXPERIENCE BENTO ──────────────────── */}
       <section className="py-14 md:py-24 bg-[#161616] border-y border-white/5">
         <div className="max-w-7xl mx-auto px-6">
-          <motion.div {...reveal} className="text-center max-w-2xl mx-auto mb-14">
+          <motion.div
+            {...reveal}
+            className="text-center max-w-2xl mx-auto mb-14"
+          >
             <h2 className="text-4xl md:text-5xl font-bold text-primary-peach tracking-tight">
               The Guru Experience
             </h2>
@@ -328,15 +386,19 @@ export default function HomePage({
                   key={feat.title}
                   initial={{ opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
+                  viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.5, delay: i * 0.07 }}
                   className="group bg-[#1c1c1c] border border-white/5 hover:border-primary-peach/20 rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1"
                 >
                   <div className="w-12 h-12 rounded-2xl bg-primary-peach/10 border border-primary-peach/15 flex items-center justify-center mb-5 group-hover:bg-primary-peach/20 transition-colors">
                     <Icon className="w-5 h-5 text-primary-peach" />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">{feat.title}</h3>
-                  <p className="text-zinc-400 text-sm font-light leading-relaxed">{feat.desc}</p>
+                  <h3 className="text-lg font-bold text-white mb-2">
+                    {feat.title}
+                  </h3>
+                  <p className="text-zinc-400 text-sm font-light leading-relaxed">
+                    {feat.desc}
+                  </p>
                 </motion.div>
               );
             })}
@@ -350,7 +412,7 @@ export default function HomePage({
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
+            viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6 }}
             className="relative"
           >
@@ -366,7 +428,8 @@ export default function HomePage({
             <div className="absolute -bottom-6 right-2 sm:right-6 bg-[#242424] border border-white/10 rounded-2xl p-4 sm:p-5 max-w-[85%] sm:max-w-xs shadow-2xl">
               <Quote className="w-5 h-5 text-primary-peach mb-2" />
               <p className="text-zinc-300 text-xs font-light leading-relaxed italic">
-                “The kind of place you come for the coffee and stay for the whole evening.”
+                “The kind of place you come for the coffee and stay for the
+                whole evening.”
               </p>
             </div>
           </motion.div>
@@ -374,7 +437,7 @@ export default function HomePage({
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
+            viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold text-primary-peach tracking-tight leading-tight">
@@ -403,7 +466,10 @@ export default function HomePage({
       {/* ──────────────────── BRANCHES ──────────────────── */}
       <section className="py-14 md:py-24 bg-[#161616] border-y border-white/5">
         <div className="max-w-7xl mx-auto px-6">
-          <motion.div {...reveal} className="text-center max-w-2xl mx-auto mb-14">
+          <motion.div
+            {...reveal}
+            className="text-center max-w-2xl mx-auto mb-14"
+          >
             <h2 className="text-4xl md:text-5xl font-bold text-primary-peach tracking-tight">
               Visit Us
             </h2>
@@ -413,11 +479,14 @@ export default function HomePage({
             <p className="text-zinc-400 text-sm font-light mt-4">
               {branchName ? (
                 <>
-                  You’re currently ordering from{' '}
-                  <span className="text-primary-peach font-semibold">{branchName}</span>.
+                  You’re currently ordering from{" "}
+                  <span className="text-primary-peach font-semibold">
+                    {branchName}
+                  </span>
+                  .
                 </>
               ) : (
-                'Pick the outlet closest to you and start your order.'
+                "Pick the outlet closest to you and start your order."
               )}
             </p>
           </motion.div>
@@ -428,7 +497,7 @@ export default function HomePage({
                 key={branch.id}
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-60px' }}
+                viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="group relative bg-[#1c1c1c] border border-white/5 hover:border-primary-peach/25 rounded-3xl p-8 overflow-hidden transition-all duration-300"
               >
@@ -437,8 +506,12 @@ export default function HomePage({
                   <div className="w-12 h-12 rounded-2xl bg-primary-peach/10 border border-primary-peach/15 flex items-center justify-center mb-5">
                     <Building2 className="w-5 h-5 text-primary-peach" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white">{branch.name}</h3>
-                  <p className="text-zinc-500 text-sm font-light mt-1">{branch.area}</p>
+                  <h3 className="text-2xl font-bold text-white">
+                    {branch.name}
+                  </h3>
+                  <p className="text-zinc-500 text-sm font-light mt-1">
+                    {branch.area}
+                  </p>
                   <div className="flex items-center gap-2 mt-4 text-zinc-400 text-xs font-mono">
                     <Clock className="w-3.5 h-3.5 text-primary-peach" />
                     12:00 PM – 12:00 AM, daily
@@ -460,7 +533,10 @@ export default function HomePage({
       {/* ──────────────────── FINAL CTA ──────────────────── */}
       <section className="py-14 md:py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(230,126,34,0.12),transparent_60%)]" />
-        <motion.div {...reveal} className="relative z-10 max-w-3xl mx-auto px-6 text-center">
+        <motion.div
+          {...reveal}
+          className="relative z-10 max-w-3xl mx-auto px-6 text-center"
+        >
           <Flame className="w-10 h-10 text-primary-peach mx-auto mb-6" />
           <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-[0.95]">
             Hungry already?

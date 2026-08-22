@@ -2,39 +2,41 @@
 // Backend (NestJS) defaults to port 3000, but the frontend dev server also uses
 // 3000 — run the backend on 4000 (set PORT=4000 in the backend .env) to avoid a clash.
 
-const rawBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000').trim();
+const rawBaseUrl = (
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000"
+).trim();
 
 // Tolerate a base URL without a scheme (e.g. "localhost:4000"): without
 // "http(s)://" the browser treats it as an invalid protocol and fetch throws.
 const withScheme =
-  /^https?:\/\//i.test(rawBaseUrl) || rawBaseUrl.startsWith('/')
+  /^https?:\/\//i.test(rawBaseUrl) || rawBaseUrl.startsWith("/")
     ? rawBaseUrl
     : `http://${rawBaseUrl}`;
 
-export const API_BASE_URL: string = withScheme.replace(/\/+$/, ''); // strip trailing slash
+export const API_BASE_URL: string = withScheme.replace(/\/+$/, ""); // strip trailing slash
 
 // Orders require a branch. The seeded backend uses bigint ids; default to "1".
 export const DEFAULT_BRANCH_ID: string =
-  import.meta.env.VITE_DEFAULT_BRANCH_ID ?? '1';
+  import.meta.env.VITE_DEFAULT_BRANCH_ID ?? "1";
 
 // localStorage key for the persisted JWT access token.
-export const AUTH_TOKEN_KEY = 'guru.auth.token';
+export const AUTH_TOKEN_KEY = "guru.auth.token";
 
 // localStorage key for the user's selected branch.
-export const BRANCH_STORAGE_KEY = 'guru.branch.id';
+export const BRANCH_STORAGE_KEY = "guru.branch.id";
 
 // localStorage key for guest checkout details (name/phone/address), so a
 // returning guest doesn't have to retype them on the next order.
-export const GUEST_INFO_KEY = 'guru.guest.info';
+export const GUEST_INFO_KEY = "guru.guest.info";
 
 // WhatsApp contact number (international format, digits only) for the floating
 // chat button. Override with VITE_WHATSAPP_NUMBER.
 export const WHATSAPP_NUMBER: string =
-  import.meta.env.VITE_WHATSAPP_NUMBER ?? '923001234567';
+  import.meta.env.VITE_WHATSAPP_NUMBER ?? "933061114878";
 
 // Sales tax rates by payment method (Punjab practice: lower GST on card/digital,
 // higher on cash). The backend doesn't compute tax, so this is a UI estimate.
-export const TAX_RATES: Record<'cash' | 'card', number> = {
+export const TAX_RATES: Record<"cash" | "card", number> = {
   cash: 0.16,
   card: 0.08,
 };
@@ -50,6 +52,6 @@ export interface BranchOption {
 // `branches` table — Wapda Town is the seeded branch (id 1); Model Town (id 2)
 // must be inserted in the DB for orders to it to go through.
 export const BRANCHES: BranchOption[] = [
-  { id: '1', name: 'Wapda Town', area: 'Lahore' },
-  { id: '2', name: 'Model Town', area: 'Lahore' },
+  { id: "1", name: "Wapda Town", area: "Lahore" },
+  { id: "2", name: "Model Town", area: "Lahore" },
 ];
