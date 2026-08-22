@@ -32,7 +32,7 @@ export const GUEST_INFO_KEY = "guru.guest.info";
 // WhatsApp contact number (international format, digits only) for the floating
 // chat button. Override with VITE_WHATSAPP_NUMBER.
 export const WHATSAPP_NUMBER: string =
-  import.meta.env.VITE_WHATSAPP_NUMBER ?? "933061114878";
+  import.meta.env.VITE_WHATSAPP_NUMBER ?? "923061114878";
 
 // Sales tax rates by payment method (Punjab practice: lower GST on card/digital,
 // higher on cash). The backend doesn't compute tax, so this is a UI estimate.
