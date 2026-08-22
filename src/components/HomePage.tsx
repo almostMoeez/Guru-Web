@@ -150,7 +150,7 @@ export default function HomePage({
                 Explore Menu
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
-              <motion.button
+              {/* <motion.button
                 onClick={onFindUs}
                 animate={{
                   boxShadow: [
@@ -169,7 +169,7 @@ export default function HomePage({
                 className="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/20 hover:border-white hover:bg-white/5 text-white font-semibold text-xs tracking-[0.16em] rounded-full cursor-pointer uppercase"
               >
                 Reserve a Table
-              </motion.button>
+              </motion.button> */}
             </div>
 
             {/* Stats */}
@@ -553,12 +553,12 @@ export default function HomePage({
               Order Now
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button
+            {/* <button
               onClick={onFindUs}
               className="w-full sm:w-auto px-9 py-4 bg-transparent border border-white/20 hover:border-white hover:bg-white/5 text-white font-semibold text-xs tracking-[0.16em] rounded-full transition-all duration-300 cursor-pointer uppercase"
             >
               Find Us
-            </button>
+            </button> */}
           </div>
         </motion.div>
       </section>

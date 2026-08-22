@@ -1,8 +1,16 @@
-import { useState, useEffect } from 'react';
-import { ShoppingCart, Menu as MenuIcon, X, User, LogOut, Building2, ClipboardList } from 'lucide-react';
-import logoImg from '../assets/images/logo.png';
-import { useAuth } from '../lib/auth/AuthContext';
-import ProfileMenu from './ProfileMenu';
+import { useState, useEffect } from "react";
+import {
+  ShoppingCart,
+  Menu as MenuIcon,
+  X,
+  User,
+  LogOut,
+  Building2,
+  ClipboardList,
+} from "lucide-react";
+import logoImg from "../assets/images/logo.png";
+import { useAuth } from "../lib/auth/AuthContext";
+import ProfileMenu from "./ProfileMenu";
 
 interface HeaderProps {
   onCartClick: () => void;
@@ -14,7 +22,15 @@ interface HeaderProps {
   onBranchClick: () => void;
 }
 
-export default function Header({ onCartClick, cartCount, activeSection, onNavigate, onAuthClick, branchName, onBranchClick }: HeaderProps) {
+export default function Header({
+  onCartClick,
+  cartCount,
+  activeSection,
+  onNavigate,
+  onAuthClick,
+  branchName,
+  onBranchClick,
+}: HeaderProps) {
   const { isAuthenticated, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,27 +43,27 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
         setIsScrolled(false);
       }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Lock page scroll while the mobile drawer is open (same pattern as CartOverlay).
   useEffect(() => {
     if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [mobileMenuOpen]);
 
   const menuItems = [
-    { id: 'home', label: 'HOME' },
-    { id: 'menu', label: 'MENU' },
-    { id: 'story', label: 'OUR STORY' },
-    { id: 'contact', label: 'CONTACT US' },
+    { id: "home", label: "HOME" },
+    { id: "menu", label: "MENU" },
+    { id: "story", label: "OUR STORY" },
+    // { id: 'contact', label: 'CONTACT US' },
   ];
 
   const handleLinkClick = (id: string) => {
@@ -59,31 +75,44 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
     <header
       id="app-header"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b bg-[#1c1c1c]/90 backdrop-blur-md border-white/5 ${
-        isScrolled ? 'py-3 shadow-lg' : 'py-4 md:py-6'
+        isScrolled ? "py-3 shadow-lg" : "py-4 md:py-6"
       }`}
     >
       <div className="w-full px-6 md:px-10 grid grid-cols-[1fr_auto_1fr] items-center">
         {/* Logo */}
         <div
           id="header-logo"
-          onClick={() => handleLinkClick('home')}
+          onClick={() => handleLinkClick("home")}
           className="flex items-center cursor-pointer justify-self-start"
         >
-          <img src={logoImg} alt="Guru Logo" className="h-9 md:h-12 w-auto object-contain" />
+          <img
+            src={logoImg}
+            alt="Guru Logo"
+            className="h-9 md:h-12 w-auto object-contain"
+          />
         </div>
 
         {/* Desktop Navigation */}
         {/* col-start keeps items in their columns even when the nav is display:none
             (a hidden grid item is skipped, which used to shift the actions into
             the middle column on mobile/tablet). */}
-        <nav id="desktop-nav" className="hidden lg:flex items-center gap-10 justify-self-center col-start-2">
+        <nav
+          id="desktop-nav"
+          className="hidden lg:flex items-center gap-10 justify-self-center col-start-2"
+        >
           {menuItems.map((item) => (
             <button
               key={item.id}
               onClick={() => handleLinkClick(item.id)}
               className="relative py-2 text-xs font-semibold tracking-[0.2em] transition-colors focus:outline-none"
             >
-              <span className={activeSection === item.id ? 'text-primary-peach' : 'text-zinc-400 hover:text-[#f3a082]'}>
+              <span
+                className={
+                  activeSection === item.id
+                    ? "text-primary-peach"
+                    : "text-zinc-400 hover:text-[#f3a082]"
+                }
+              >
                 {item.label}
               </span>
               {activeSection === item.id && (
@@ -94,16 +123,23 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
         </nav>
 
         {/* Actions */}
-        <div id="header-actions" className="flex items-center gap-2 md:gap-4 justify-self-end col-start-3">
+        <div
+          id="header-actions"
+          className="flex items-center gap-2 md:gap-4 justify-self-end col-start-3"
+        >
           {/* Branch selector */}
           <button
             id="branch-trigger-btn"
             onClick={onBranchClick}
             className="hidden lg:inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/5 hover:border-primary-peach/30 text-zinc-300 hover:text-white text-xs font-medium transition-all max-w-[170px] cursor-pointer"
-            title={branchName ? `Branch: ${branchName} — tap to change` : 'Select a branch'}
+            title={
+              branchName
+                ? `Branch: ${branchName} — tap to change`
+                : "Select a branch"
+            }
           >
             <Building2 className="w-3.5 h-3.5 text-primary-peach shrink-0" />
-            <span className="truncate">{branchName ?? 'Select branch'}</span>
+            <span className="truncate">{branchName ?? "Select branch"}</span>
           </button>
 
           <button
@@ -142,7 +178,11 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="lg:hidden p-2 text-zinc-300 hover:text-white focus:outline-none"
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+            {mobileMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <MenuIcon className="w-6 h-6" />
+            )}
           </button>
         </div>
       </div>
@@ -158,7 +198,9 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
               key={item.id}
               onClick={() => handleLinkClick(item.id)}
               className={`text-left py-2 text-lg font-medium tracking-widest border-b border-white/5 transition-colors ${
-                activeSection === item.id ? 'text-primary-peach font-bold' : 'text-zinc-350 hover:text-white'
+                activeSection === item.id
+                  ? "text-primary-peach font-bold"
+                  : "text-zinc-350 hover:text-white"
               }`}
             >
               {item.label}
@@ -176,7 +218,7 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
             <span className="flex items-center gap-2 text-zinc-350">
               <Building2 className="w-4 h-4 text-primary-peach" />
               <span className="text-sm font-medium tracking-wide">
-                {branchName ? `Branch: ${branchName}` : 'Select branch'}
+                {branchName ? `Branch: ${branchName}` : "Select branch"}
               </span>
             </span>
             <span className="text-primary-peach text-[10px] font-semibold uppercase tracking-wider">
@@ -187,18 +229,22 @@ export default function Header({ onCartClick, cartCount, activeSection, onNaviga
           {isAuthenticated ? (
             <>
               <button
-                onClick={() => handleLinkClick('profile')}
+                onClick={() => handleLinkClick("profile")}
                 className="flex items-center gap-2 py-2 text-left text-zinc-350 hover:text-white border-b border-white/5"
               >
                 <User className="w-4 h-4 text-primary-peach" />
-                <span className="text-sm font-medium tracking-wide">My Profile</span>
+                <span className="text-sm font-medium tracking-wide">
+                  My Profile
+                </span>
               </button>
               <button
-                onClick={() => handleLinkClick('orders')}
+                onClick={() => handleLinkClick("orders")}
                 className="flex items-center gap-2 py-2 text-left text-zinc-350 hover:text-white border-b border-white/5"
               >
                 <ClipboardList className="w-4 h-4 text-primary-peach" />
-                <span className="text-sm font-medium tracking-wide">Order History</span>
+                <span className="text-sm font-medium tracking-wide">
+                  Order History
+                </span>
               </button>
               <button
                 onClick={() => {
